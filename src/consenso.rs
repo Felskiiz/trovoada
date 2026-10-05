@@ -117,23 +117,35 @@ pub fn calcular(prev: &[&Previsao], t: i64) -> Consenso {
 
     // Gradiente em °C/100 km por diferença central; y cresce para o sul. Bordas ficam 0.
     let ts = suavizar(&c.t850);
+    let mut g = vec![(0.0f32, 0.0f32); N];
     for y in 1..NY - 1 {
         let dy = 0.5 * KM_GRAU;
         let dx = dy * lat(y).to_radians().cos();
         for x in 1..NX - 1 {
             let i = y * NX + x;
-            let gx = (ts[i + 1] - ts[i - 1]) / (2.0 * dx) * 100.0;
-            let gy = (ts[i - NX] - ts[i + NX]) / (2.0 * dy) * 100.0;
-            let adv = -(c.u[i] * gx + c.v[i] * gy);
-            if gx.hypot(gy) > LIMIAR_FRENTE {
-                c.frente[i] = if adv < 0.0 {
-                    -1
-                } else if adv > 0.0 {
-                    1
-                } else {
-                    0
-                };
+            g[i] = (
+                (ts[i + 1] - ts[i - 1]) / (2.0 * dx) * 100.0,
+                (ts[i - NX] - ts[i + NX]) / (2.0 * dy) * 100.0,
+            );
+        }
+    }
+    let m = |i: usize| g[i].0.hypot(g[i].1);
+    for y in 2..NY - 2 {
+        for x in 2..NX - 2 {
+            let i = y * NX + x;
+            let (gx, gy) = g[i];
+            // ponytail: t2m < t850 marca relevo acima de 850 hPa (Andes), onde o t850 é extrapolado; troca por pressão de superfície se o falso positivo incomodar.
+            if m(i) <= LIMIAR_FRENTE || c.t2m[i] < c.t850[i] {
+                continue;
             }
+            // Só o máximo do gradiente ao longo da própria direção: a zona vira linha.
+            let (sx, sy) = ((gx / m(i)).round() as isize, (-gy / m(i)).round() as isize);
+            let d = sy * NX as isize + sx;
+            if m(i) < m((i as isize + d) as usize) || m(i) < m((i as isize - d) as usize) {
+                continue;
+            }
+            let adv = -(c.u[i] * gx + c.v[i] * gy);
+            c.frente[i] = (adv > 0.0) as i8 - (adv < 0.0) as i8;
         }
     }
 
@@ -217,6 +229,15 @@ mod testes {
         let c = calcular(&[&p], T);
         assert_eq!(c.frente[I], -1);
         assert_eq!(c.frente[40 * NX], 0);
+        // Relevo acima de 850 hPa: t2m mais fria que o t850 extrapolado não marca frente.
+        let p = prev("gfs", |c| {
+            for i in 0..N {
+                c.t850[i] = 2.0 * (i % NX) as f32;
+                c.t2m[i] = c.t850[i] - 1.0;
+                c.u[i] = 5.0;
+            }
+        });
+        assert_eq!(calcular(&[&p], T).frente[I], 0);
     }
 
     #[test]

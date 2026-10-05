@@ -55,7 +55,7 @@ td{text-align:right;white-space:nowrap}
 th,td{padding:5px 0}
 thead td{font-size:10px}
 tbody tr{border-top:1px solid var(--limo)}
-.voto{color:var(--chuva)}
+.voto{color:var(--acento)}
 .alerta+.alerta{margin-top:14px;padding-top:14px;border-top:1px solid var(--limo)}
 .alerta h3{font:17px var(--texto);display:flex;gap:8px;align-items:baseline}
 .alerta .g{color:var(--ocre)}
