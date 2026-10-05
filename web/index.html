@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>trovoada</title>
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<link rel="stylesheet" href="estilo.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<div id="lado">
+<div id="mapa"></div>
+<nav id="chips"></nav>
+<div id="legenda" hidden></div>
+<div id="tempo" hidden><button id="play" aria-pressed="false">&#xF040A;</button><input id="slider" type="range" min="0" max="0" value="0"><output id="instante"></output></div>
+</div>
+<aside id="painel">
+<div id="busca"><span class="g">&#xF0349;</span><input id="q" type="search" autocomplete="off" spellcheck="false" aria-label="lugar"><ul id="sugestoes" hidden></ul></div>
+<section id="agora" hidden></section>
+<section id="horas" hidden><canvas></canvas></section>
+<section id="fontes" hidden><table></table></section>
+<section id="alertas" hidden></section>
+<footer id="rodape" hidden></footer>
+</aside>
+</body>
+</html>
