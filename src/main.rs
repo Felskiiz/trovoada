@@ -43,7 +43,10 @@ struct App {
 type St = State<Arc<App>>;
 
 fn agora() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64
 }
 
 #[tokio::main]
@@ -67,7 +70,12 @@ async fn main() {
     });
     tokio::spawn(ciclo(app.clone(), "gfs", &["gfs"], 3600));
     tokio::spawn(ciclo(app.clone(), "ecmwf", &["ecmwf"], 3600));
-    tokio::spawn(ciclo(app.clone(), "openmeteo", &["icon", "ukmo", "cma"], 1800));
+    tokio::spawn(ciclo(
+        app.clone(),
+        "openmeteo",
+        &["icon", "ukmo", "cma"],
+        1800,
+    ));
     tokio::spawn(ciclo_raios(app.clone()));
     let web = concat!(env!("CARGO_MANIFEST_DIR"), "/web");
     let rotas = Router::new()
@@ -228,9 +236,8 @@ async fn cores(State(a): St) -> Json<Value> {
 
 async fn lugar(State(a): St) -> Json<Value> {
     Json(
-        ler_json(a.casa.join(".config/petricor/lugar.json")).unwrap_or_else(
-            || json!({"nome":"Laranjeiras do Sul","lat":-25.3356,"lon":-52.3699}),
-        ),
+        ler_json(a.casa.join(".config/petricor/lugar.json"))
+            .unwrap_or_else(|| json!({"nome":"Laranjeiras do Sul","lat":-25.3356,"lon":-52.3699})),
     )
 }
 
