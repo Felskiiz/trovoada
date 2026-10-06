@@ -32,6 +32,10 @@ body.sem{--pw:0px}
 #legenda{position:absolute;left:14px;bottom:74px;background:var(--terra);border-radius:14px;padding:5px 10px;font:11px var(--mono);display:flex;align-items:center;gap:4px;z-index:2}
 #legenda i{display:inline-block;width:12px;height:6px;border-radius:3px;margin-left:4px}
 #legenda i:first-child{margin-left:0}
+.massa{font:11px var(--mono);background:var(--terra);border-radius:999px;padding:2px 9px;pointer-events:none;white-space:nowrap}
+.massa.f{color:var(--areia)}
+.massa.q{color:var(--ferro)}
+#legenda b{font-weight:normal;margin-left:6px}
 .lugar{width:12px;height:12px;border-radius:50%;border:2px solid var(--areia);background:var(--breu)}
 #painel{position:fixed;top:14px;right:14px;bottom:14px;width:380px;z-index:3;border-radius:22px;transition:translate .5s var(--petricor);background:var(--terra);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--limo) transparent;padding:22px;display:flex;flex-direction:column;gap:14px}
 #painel::-webkit-scrollbar{width:6px}
