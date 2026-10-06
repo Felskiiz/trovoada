@@ -234,11 +234,8 @@ async fn cores(State(a): St) -> Json<Value> {
     )
 }
 
-async fn lugar(State(a): St) -> Json<Value> {
-    Json(
-        ler_json(a.casa.join(".config/petricor/lugar.json"))
-            .unwrap_or_else(|| json!({"nome":"Laranjeiras do Sul","lat":-25.3356,"lon":-52.3699})),
-    )
+async fn lugar() -> Json<Value> {
+    Json(json!({"nome":"Quedas do Iguaçu","uf":"PR","lat":-25.4492,"lon":-52.9102}))
 }
 
 async fn tile(

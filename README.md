@@ -14,13 +14,13 @@ Ao subir, o servidor baixa o GFS e o ECMWF em GRIB, o que leva cerca de 35 s. A 
 
 ## Consenso
 
-Grade de 0,5° (lat 6 a −34, lon −74 a −34), quadros a cada 3 h até +72 h. Votam cinco modelos:
+Grade de 0,5° (lat 6 a −50, lon −76 a −20, para ver as frentes que sobem do sul e do Atlântico; fora da malha de 1° do Open-Meteo votam só ECMWF e GFS), quadros a cada 3 h até +72 h. Votam cinco modelos:
 
 - ECMWF IFS, peso 1,25, do GRIB aberto
 - GFS, do filtro NOMADS
 - ICON, UKMO e CMA, pelo Open-Meteo
 
-Cada célula chove quando a maioria ponderada passa de 0,2 mm/h. Temperatura, vento e pressão são a média ponderada dos modelos. As frentes saem do gradiente de temperatura em 850 hPa, afinado por supressão de não-máximos. A advecção decide se a frente é fria ou quente.
+Cada célula chove quando a maioria ponderada passa de 0,2 mm/h. Temperatura e vento são a média ponderada dos modelos. As frentes saem do gradiente de temperatura em 850 hPa, afinado por supressão de não-máximos. A advecção decide se a frente é fria ou quente.
 
 ## Observação
 

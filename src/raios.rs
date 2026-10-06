@@ -79,7 +79,7 @@ fn na_caixa(bytes: &[u8]) -> Result<Vec<[f32; 2]>, String> {
     Ok(lat
         .iter()
         .zip(lon.iter())
-        .filter(|(la, lo)| (-34.0..=6.0).contains(*la) && (-74.0..=-34.0).contains(*lo))
+        .filter(|(la, lo)| (-50.0..=6.0).contains(*la) && (-76.0..=-20.0).contains(*lo))
         .map(|(la, lo)| [*la as f32, *lo as f32])
         .collect())
 }

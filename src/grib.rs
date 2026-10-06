@@ -175,7 +175,7 @@ fn em_cache(c: &Mutex<Option<Previsao>>, r: i64) -> Option<Previsao> {
 fn url_gfs(r: i64, f: u32) -> String {
     let (d, h) = (ymd(r), r.rem_euclid(86400) / 3600);
     format!(
-        "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.{d}%2F{h:02}%2Fatmos&file=gfs.t{h:02}z.pgrb2.0p25.f{f:03}&var_APCP=on&var_CAPE=on&var_TMP=on&var_PRMSL=on&var_GUST=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_850_mb=on&lev_mean_sea_level=on&lev_10_m_above_ground=on&lev_2_m_above_ground=on&subregion=&toplat=6&leftlon=286&rightlon=326&bottomlat=-34"
+        "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.{d}%2F{h:02}%2Fatmos&file=gfs.t{h:02}z.pgrb2.0p25.f{f:03}&var_APCP=on&var_CAPE=on&var_TMP=on&var_PRMSL=on&var_GUST=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_850_mb=on&lev_mean_sea_level=on&lev_10_m_above_ground=on&lev_2_m_above_ground=on&subregion=&toplat=6&leftlon=284&rightlon=340&bottomlat=-50"
     )
 }
 

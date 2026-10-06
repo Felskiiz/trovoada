@@ -2,12 +2,12 @@
 use serde::{Serialize, Serializer};
 use std::collections::BTreeMap;
 
-/// Grade 0,5° sobre o Brasil: lat 6 a -34, lon -74 a -34. Índice i = y*NX + x.
-pub const NX: usize = 81;
-pub const NY: usize = 81;
+/// Grade 0,5° do Brasil até o sul da Argentina e o Atlântico, por onde chegam as frentes: lat 6 a -50, lon -76 a -20. Índice i = y*NX + x.
+pub const NX: usize = 113;
+pub const NY: usize = 113;
 pub const N: usize = NX * NY;
 pub const LAT0: f32 = 6.0;
-pub const LON0: f32 = -74.0;
+pub const LON0: f32 = -76.0;
 pub const PASSO: f32 = 0.5;
 /// Intervalo entre quadros (s) e horizonte (s).
 pub const QUADRO: i64 = 3 * 3600;
