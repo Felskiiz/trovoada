@@ -9,13 +9,17 @@ const RAJADA_RISCO: f32 = 60.0;
 const LIMIAR_FRENTE: f32 = 1.0;
 const KM_GRAU: f32 = 111.0;
 
-/// Instantes válidos (múltiplos de QUADRO) de agora-PASSADO até agora+HORIZONTE cobertos por alguma fonte.
+/// Instantes válidos (múltiplos de QUADRO) de agora-PASSADO até agora+HORIZONTE com 90% da grade coberta.
+/// Só "alguma fonte tem o passo" deixava entrar o fim da janela onde resta uma fonte de domínio parcial: quadro quase vazio.
 pub fn tempos(prev: &[&Previsao], agora: i64) -> Vec<i64> {
     let fim = agora + HORIZONTE;
     ((agora - PASSADO).div_euclid(QUADRO)..)
         .map(|k| k * QUADRO)
         .take_while(|&t| t <= fim)
-        .filter(|t| prev.iter().any(|p| p.passos.contains_key(t)))
+        .filter(|t| {
+            let c: Vec<&Campos> = prev.iter().filter_map(|p| p.passos.get(t)).collect();
+            !c.is_empty() && (0..N).filter(|&i| c.iter().any(|c| c.u[i].is_finite())).count() * 10 >= N * 9
+        })
         .collect()
 }
 
@@ -255,7 +259,7 @@ mod testes {
         let p = Previsao {
             fonte: "gfs",
             rodada: 0,
-            passos: [0, T, 100 * QUADRO].map(|t| (t, Campos::vazio())).into(),
+            passos: [0, T, 100 * QUADRO].map(|t| (t, cheio())).into(),
         };
         let agora = T + 100;
         assert_eq!(tempos(&[&p], agora), vec![0, T]);
@@ -264,5 +268,15 @@ mod testes {
         assert_eq!(tempos(&[&p], PASSADO + QUADRO), vec![T]);
         assert_eq!(tempos(&[&p], T + PASSADO + QUADRO - 1), vec![T]);
         assert!(tempos(&[&p], T + PASSADO + QUADRO).is_empty());
+        // Passo que cobre só um pedaço da grade fica de fora.
+        let mut q = p.clone();
+        q.passos.get_mut(&T).unwrap().u[N / 2..].fill(f32::NAN);
+        assert_eq!(tempos(&[&q], agora), vec![0]);
+    }
+
+    fn cheio() -> Campos {
+        let mut c = Campos::vazio();
+        c.u.fill(0.0);
+        c
     }
 }

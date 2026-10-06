@@ -34,6 +34,7 @@ body.sem{--pw:0px}
 #slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--areia)}
 #slider:active::-moz-range-thumb{transform:scale(1.25)}
 #legenda{position:absolute;top:56px;right:calc(var(--pw) + 14px);transition:right .5s var(--petricor);width:250px;background:var(--terra);border-radius:14px;padding:8px 14px 6px;font:11px var(--mono);z-index:2}
+#legenda .item+.item{margin-top:9px}
 #legenda .barra{height:8px;border-radius:4px;margin:6px 0 3px}
 #legenda .rot{position:relative;height:13px;font-size:10px}
 #legenda .rot span{position:absolute;translate:-50% 0;white-space:nowrap}
