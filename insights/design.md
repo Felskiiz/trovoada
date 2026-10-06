@@ -7,13 +7,18 @@
 ## Cor
 - Toda cor de interface vem da paleta viva da petricor (`/api/cores` → variáveis CSS `--breu`, `--terra`, `--barro`, `--limo`, `--musgo`, `--acento`, `--ocre`, `--ferro`, `--areia`, `--fonte`). Não introduza cor nova; misture as que existem (`mix` em `camadas.js`).
 - A paleta é recarregada a cada minuto (`cores()` + `tinta()`), então nada pode guardar cor fixa em CSS ou em canvas sem repintar.
+- Terra e oceano separados por mistura (`hx` em `app.js`): países `limo→fonte` 22%, Brasil 40%, oceano `--breu`.
+- Temperatura (capitais e número grande do painel) usa a cor da faixa (`tcor`): <14 areia, <22 musgo, <28 acento, <33 ocre, acima ferro.
 - Exceção: as legendas de radar e satélite (`LEG.radar`, `LEG.ir`) usam as cores reais dos ladrilhos de terceiros, amostradas dos PNG. Se trocar o esquema de cor no `obs.rs`, reamostre (ler o PNG e contar as cores) e atualize as paradas.
 - Nível de alerta INMET: a cor do INMET só decide o nível (0 amarelo, 1 laranja, 2 vermelho); a cor desenhada é `ocre` (0) ou `ferro` (1 e 2).
 
 ## Forma
 - Tudo é pill ou caixa de canto arredondado: chips com `border-radius:999px`, painéis com 22px, balões com 8 a 10px.
 - Nunca use faixa lateral colorida (barra de acento) para marcar item selecionado: o selecionado muda o fundo inteiro (`aria-pressed=true` → fundo `--acento`, texto `--breu`).
-- Profundidade por tom (`--terra` sobre o mapa, `--barro` nos botões), sem sombra pesada nem transparência em superfície.
+- Profundidade por tom (`--terra` sobre o mapa, `--barro` nos botões) mais uma sombra suave comum (`--sombra`) em tudo que flutua sobre o mapa; nada de transparência em superfície.
+- Botão principal (`#play`), cursor do trilho e balão da hora em `--acento`, com halo `--anel` (acento a 30%) no hover e quando ativo.
+- Os chips de camada ficam juntos numa pill `--terra` só, cada um com glifo; ligado é fundo `--acento` e glifo `--breu`.
+- Entrada: controles surgem com `surge` (fade + 10px) escalonado; o ponto do lugar pulsa. `prefers-reduced-motion` desliga as animações.
 - Fontes: `var(--texto)` para rótulos, `var(--mono)` para números e horas. Ícones são glifos Nerd Font `nf-md` (plano 15, `\u{F....}`); os de outros planos somem.
 - Cursor do mapa é a seta normal: nada de mãozinha de agarrar (`.maplibregl-canvas-container` com `cursor:default`).
 
