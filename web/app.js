@@ -1,6 +1,6 @@
 import * as maplibregl from './vendor/maplibre-gl.mjs';
 import {G,rgb,mix,sst,amostra,rampa,pinta,cantos,frentes,vento,suave,centros} from './camadas.js';
-// 6 passos de 30 min por quadro de 3 h; o radar anda quadro a quadro
+// 6 passos de 30 min por quadro de 3 h; radar e satélite andam quadro a quadro (10 min)
 const K=()=>S.modo?1:6,k1=()=>S.modo?1e3:300;
 // entre dois quadros: campos interpolados linearmente; frentes do mais próximo
 const mistura=(a,b,r)=>{const L=k=>a[k]&&b[k]?a[k].map((v,j)=>v==null?b[k][j]:b[k][j]==null?v:v+(b[k][j]-v)*r):a[k]||b[k],o={...(r<.5?a:b)};for(const k of['chuva','u','v','am','risco','votos_chuva','fontes','t2m'])o[k]=L(k);return o};
@@ -20,10 +20,9 @@ const med=a=>{if(!a.length)return null;a=[...a].sort((x,y)=>x-y);const m=a.lengt
 const lista=s=>Array.isArray(s)?s:String(s??'').trim().replace(/^\[\s*['"]?|['"]?\s*\]$/g,'').split(/['"],\s*['"]/).map(x=>x.trim()).filter(Boolean);
 const CHIPS={chuva:'chuva',radar:'radar',ir:'satélite',vento:'vento',massas:'massas de ar',tempestade:'tempestade',raios:'raios',alertas:'alertas'};
 const CAPAS={chuva:['chuva'],radar:['radar'],ir:['ir'],vento:[],massas:['massas','frentes-b','frentes','frentes-s'],tempestade:['tempestade'],raios:['raios'],alertas:['alertas-f','alertas-l']};
-const PREV=['chuva','vento','massas','tempestade'];
 const VZ={type:'FeatureCollection',features:[]};
 const VAZIO=Object.assign(document.createElement('canvas'),{width:1,height:1}).toDataURL();
-const S={tempos:[],radar:[],i:0,modo:null,campo:null,agora:null,lugar:null,ponto:null,alertas:null,fontes:null,lig:new Set(['chuva','vento']),munis:[],sug:[],sel:0,cache:new Map(),anim:null};
+const S={tempos:[],radar:[],ir:[],obs:[],i:0,modo:null,campo:null,agora:null,lugar:null,ponto:null,alertas:null,fontes:null,lig:new Set(['chuva','vento']),munis:[],sug:[],sel:0,cache:new Map(),anim:null};
 async function cores(){const c=await pega('/api/cores');if(!c)return false;Object.assign(P,c);for(const k in P){if(!/^#[0-9a-f]{6}$/i.test(P[k]))continue;C[k]=rgb(P[k]);document.documentElement.style.setProperty('--'+k.replace('_','-'),P[k])}return true}
 while(!await cores())await new Promise(r=>setTimeout(r,2e3));
 const R=(id,o=1)=>({id,type:'raster',source:id,layout:{visibility:'none'},paint:{'raster-opacity':o,'raster-fade-duration':0}});
@@ -50,13 +49,17 @@ img('chuva',f?.chuva,f?.chuva&&(()=>{const st=CH(),ch=suave(f.chuva);return(x,y)
 img('massas',f?.am,(x,y)=>{const a=amostra(f.am,x,y);if(a==null)return null;const t=Math.min(1,Math.abs(a)/7),al=.72*sst(.12,.8,t);return al>.01?[...(a<0?C.areia:mix(C.ocre,C.ferro,sst(.2,1,t))),al]:null});
 img('tempestade',f?.risco,(x,y)=>{const r=amostra(f.risco,x,y);if(r==null||r<.5)return null;return[...mix(C.ocre,C.ferro,Math.min(1,Math.max(0,(r-1)/2))),(.18+.14*r)*sst(.5,1,r)]});
 map.getSource('frentes').setData(S.lig.has('massas')&&f?.fl&&!S.modo?f.fl:VZ);rotulos(S.lig.has('massas')&&f?.am&&!S.modo?centros(f.am):[]);
-V.dados(f?.u,f?.v);cidades();cursor();horas()}
+V.dados(S.modo?null:f?.u,f?.v);cidades();cursor();horas()}
 async function campo(t){if(t==null)return null;if(!S.cache.has(t)){if(S.cache.size>16)S.cache.delete(S.cache.keys().next().value);S.cache.set(t,pega('/api/campo?t='+t).then(f=>{if(!f)S.cache.delete(t);else if(f.frente){f.fl=frentes(f.frente,20,f.t850);f.am=f.anom850.map((a,i)=>f.t850[i]-f.t2m[i]>3?null:a)}return f}))}return S.cache.get(t)}
 const agoraIdx=()=>{const n=Date.now()/1e3;let b=0;S.tempos.forEach((t,i)=>{if(Math.abs(t-n)<Math.abs(S.tempos[b]-n))b=i});return b};
 function radarEm(t){if(t==null||t===S.rt)return;S.rt=t;map.getSource('radar').setTiles([`/tile/radar/${t}/{z}/{x}/{y}.png`])}
-async function vai(){const s=$('#slider');S.i=Math.min(+s.max/K(),S.i);if(S.modo){const q=S.radar[S.i];$('#instante').textContent=relogio(q.t);bolha();radarEm(q.t);return}radarEm(S.radar.at(-1)?.t);const i=S.i,a=Math.floor(i+1e-6),r=i-a<1e-6?0:i-a,t0=S.tempos[a],t1=S.tempos[Math.min(a+1,S.tempos.length-1)];S.t=t0+(t1-t0)*r;$('#instante').textContent=hora(S.t);bolha();const[f0,f1]=await Promise.all([campo(t0),r?campo(t1):null]);if(i!==S.i||S.modo)return;S.campo=r&&f0&&f1?mistura(f0,f1,r):f0;pede();campo(S.tempos[a+1]);campo(S.tempos[a+2])}
-// radar sozinho (sem camada de previsão) faz a linha do tempo andar pelos quadros dele
-function linha(forca){const r=S.lig.has('radar')&&!PREV.some(k=>S.lig.has(k))&&S.radar.length>0,n=r?S.radar.length:S.tempos.length,s=$('#slider');$('#tempo').hidden=!n;if(!n)return;if(forca||r!==S.modo){S.modo=r;S.i=r?n-1:agoraIdx()}s.max=(n-1)*K();s.value=Math.round(S.i*K());marcas();vai()}
+function irEm(t){if(t==null||t===S.irt)return;S.irt=t;map.getSource('ir').setTiles([`/tile/ir/${new Date(t*1e3).toISOString().replace('.000','')}/{z}/{x}/{y}.png`])}
+// quadro observado mais recente até t (o primeiro, se todos forem depois)
+const ate=(a,t)=>{let b=a[0];for(const x of a)if(x<=t)b=x;return b};
+const RT=()=>S.radar.map(q=>q.t);
+async function vai(){const s=$('#slider');S.i=Math.min(+s.max/K(),S.i);if(S.modo){const t=S.obs[S.i];$('#instante').textContent=relogio(t);bolha();radarEm(ate(RT(),t));irEm(ate(S.ir,t));pede();return}radarEm(RT().at(-1));irEm(S.ir.at(-1));const i=S.i,a=Math.floor(i+1e-6),r=i-a<1e-6?0:i-a,t0=S.tempos[a],t1=S.tempos[Math.min(a+1,S.tempos.length-1)];S.t=t0+(t1-t0)*r;$('#instante').textContent=hora(S.t);bolha();const[f0,f1]=await Promise.all([campo(t0),r?campo(t1):null]);if(i!==S.i||S.modo)return;S.campo=r&&f0&&f1?mistura(f0,f1,r):f0;pede();campo(S.tempos[a+1]);campo(S.tempos[a+2])}
+// radar ou satélite ligado: a linha do tempo anda pelos quadros observados das duas horas passadas, e a previsão sai do mapa
+function linha(forca){S.obs=[...new Set([...S.lig.has('radar')?RT():[],...S.lig.has('ir')?S.ir:[]])].sort((a,b)=>a-b);const r=S.obs.length>0,n=r?S.obs.length:S.tempos.length,s=$('#slider'),ch=r?S.obs.join():'';$('#tempo').hidden=!n;if(!n)return;if(forca||r!==S.modo||ch!==S.chave){S.modo=r;S.chave=ch;S.i=r?n-1:agoraIdx()}s.max=(n-1)*K();s.value=Math.round(S.i*K());marcas();vai()}
 // trilho como Windy/Zoom Earth: faixa por dia com nome no meio, tique a cada quadro de 3 h, agora marcado e balão da hora sobre o cursor
 const em=x=>`left:calc(7px + (100% - 14px)*${x})`;
 function bolha(){const s=$('#slider'),m=+s.max;$('#instante').style.left=`calc(7px + (100% - 14px)*${m?s.value/m:0})`}
@@ -65,7 +68,7 @@ el.innerHTML=S.tempos.map((t,i)=>`<i class="${cs.includes(i)&&i&&i<m?'d':''}" st
 // legenda em barra de gradiente com os valores embaixo, como Windy
 const barra=(nome,st,rot,extra='')=>`<div class="tit">${nome}</div><div class="barra" style="background:linear-gradient(90deg,${st.map(([p,c])=>`${c} ${p*100}%`)})"></div><div class="rot">${rot.map(([p,t])=>`<span style="left:${p*100}%">${t}</span>`).join('')}</div>${extra}`;
 const lg=v=>Math.log(v/.2)/Math.log(125);
-const LEG={chuva:()=>barra('chuva · mm/h',CH().map(([v,c])=>[lg(v),`rgb(${c})`]),CH().map(([v])=>[lg(v),String(v).replace('.',',')])),vento:()=>barra('vento · km/h',[[0,P.areia],[.33,P.areia],[.33,P.ocre],[.66,P.ocre],[.66,P.ferro],[1,P.ferro]],[[0,'0'],[.33,'20'],[.66,'45']]),massas:()=>barra('850 hPa · °C contra a média da latitude',[[0,P.areia],[.5,P.terra],[1,P.ferro]],[[0,'−7 fria'],[.5,'0'],[1,'quente +7']],`<div class="fr"><b style="color:var(--areia)">▲</b> frente fria <b style="color:var(--ferro)">●</b> frente quente</div>`),radar:()=>barra('radar · refletividade dBZ',[[0,'#d6c88f'],[.18,'#88ddee'],[.3,'#00a3e0'],[.42,'#0077aa'],[.54,'#ffee00'],[.66,'#ff9f00'],[.78,'#ff4400'],[.9,'#c10000'],[1,'#ffaaff']],[[0,'10'],[.3,'25'],[.54,'40'],[.78,'50'],[1,'60+']],'<div class="fr">chuva medida agora pelos radares em solo (RainViewer), quadros de 10 min; azul fraca, amarelo forte, vermelho e rosa granizo</div>'),ir:()=>barra('satélite · infravermelho',[[0,'#2a2a2a'],[.42,'#d8d8d8'],[.46,'#001a81'],[.58,'#0099c7'],[.66,'#00803a'],[.74,'#3aff00'],[.82,'#ffcc00'],[.9,'#ff4d00'],[1,'#ff3300']],[[0,'superfície'],[.46,'nuvem alta'],[1,'tempestade']],'<div class="fr">GOES-19 canal 13 a cada 10 min; cinza mais claro é nuvem mais alta e fria; em cor, topos muito frios, do azul ao vermelho, onde há tempestade forte</div>'),tempestade:()=>barra('risco de tempestade',[[0,P.ocre],[1,P.ferro]],[[0,'1'],[.5,'2'],[1,'3']])};
+const LEG={chuva:()=>barra('chuva · mm/h',CH().map(([v,c])=>[lg(v),`rgb(${c})`]),CH().map(([v])=>[lg(v),String(v).replace('.',',')])),vento:()=>barra('vento · km/h',[[0,P.areia],[.33,P.areia],[.33,P.ocre],[.66,P.ocre],[.66,P.ferro],[1,P.ferro]],[[0,'0'],[.33,'20'],[.66,'45']]),massas:()=>barra('850 hPa · °C contra a média da latitude',[[0,P.areia],[.5,P.terra],[1,P.ferro]],[[0,'−7 fria'],[.5,'0'],[1,'quente +7']],`<div class="fr"><b style="color:var(--areia)">▲</b> frente fria <b style="color:var(--ferro)">●</b> frente quente</div>`),radar:()=>barra('radar · refletividade dBZ',[[0,'#d6c88f'],[.18,'#88ddee'],[.3,'#00a3e0'],[.42,'#0077aa'],[.54,'#ffee00'],[.66,'#ff9f00'],[.78,'#ff4400'],[.9,'#c10000'],[1,'#ffaaff']],[[0,'10'],[.3,'25'],[.54,'40'],[.78,'50'],[1,'60+']],'<div class="fr">chuva medida agora pelos radares em solo (RainViewer), quadros de 10 min; azul fraca, amarelo forte, vermelho e rosa granizo</div>'),ir:()=>barra('satélite · nuvens',[[0,'#2a2a2a'],[.42,'#d8d8d8'],[.46,'#001a81'],[.58,'#0099c7'],[.66,'#00803a'],[.74,'#3aff00'],[.82,'#ffcc00'],[.9,'#ff4d00'],[1,'#ff3300']],[[0,'chão'],[.38,'nuvem'],[.66,'chuva'],[1,'tempestade']],'<div class="fr">foto do satélite GOES-19 a cada 10 min; cinza é nuvem comum, colorido é nuvem alta que pode chover, e laranja ou vermelho é tempestade</div>'),tempestade:()=>barra('risco de tempestade',[[0,P.ocre],[1,P.ferro]],[[0,'1'],[.5,'2'],[1,'3']])};
 // leitor sob o cursor (Windy): chuva, vento e temperatura do instante na linha do tempo
 let mira=null;function cursor(){const el=$('#mira'),f=S.campo;if(!mira||!f||S.modo){el.hidden=true;return}const gx=(mira.lng-G.lon0)/G.passo,gy=(G.lat0-mira.lat)/G.passo;if(gx<0||gy<0||gx>G.nx-1||gy>G.ny-1){el.hidden=true;return}const v=k=>f[k]?amostra(f[k],gx,gy):null,t=v('t2m'),ch=v('chuva'),u=v('u'),w=v('v'),p=map.project(mira);el.innerHTML=(t!=null?`<b>${Math.round(t)}°</b>`:'')+(u!=null&&w!=null?`<span><i class="seta" style="rotate:${Math.atan2(u,w)*180/Math.PI}deg">\u{F005D}</i>${Math.round(Math.hypot(u,w)*3.6)} km/h</span>`:'')+(ch>=.1?`<span class="ch">${num(ch,1)} mm/h</span>`:'');el.style.translate=`${p.x+14}px ${p.y+14}px`;el.hidden=false}
 // capitais com a temperatura do instante; as de nível 2 e os nomes só aparecem com zoom
@@ -74,7 +77,7 @@ const CID=[];function cidades(){const f=S.campo,on=f?.t2m&&!S.modo;if(!CID.lengt
 function legenda(){const ks=[...S.lig].filter(k=>LEG[k]),el=$('#legenda');el.hidden=!ks.length;el.innerHTML=ks.map(k=>`<div class="item">${LEG[k]()}</div>`).join('')}
 function liga(k,on){on?S.lig.add(k):S.lig.delete(k);$(`#chips [data-k="${k}"]`).setAttribute('aria-pressed',on);for(const l of CAPAS[k])map.setLayoutProperty(l,'visibility',on?'visible':'none');if(k=='vento')V.liga(on);if(k=='raios')raios();legenda();linha()}
 async function tempos(){const r=await pega('/api/tempos');if(!r)return;if(r.grade)Object.assign(G,r.grade);S.fontes=r.fontes;rodape();const novo=JSON.stringify(r.tempos)!==JSON.stringify(S.tempos);S.tempos=r.tempos||[];S.cache.clear();S.agora=S.tempos.length?await campo(S.tempos[agoraIdx()]):null;agoraBloco();linha(novo)}
-async function passado(){const[r,s]=await Promise.all([pega('/api/radar'),pega('/api/satelite')]);S.radar=Array.isArray(r)?r:[];const ir=s?.ir?.at(-1);if(ir&&ir!==S.irt){S.irt=ir;map.getSource('ir').setTiles([`/tile/ir/${ir}/{z}/{x}/{y}.png`])}linha()}
+async function passado(){const[r,s]=await Promise.all([pega('/api/radar'),pega('/api/satelite')]);S.radar=Array.isArray(r)?r:[];S.ir=(s?.ir||[]).map(x=>Date.parse(x)/1e3);linha()}
 async function raios(){if(!S.lig.has('raios'))return;const r=await pega('/api/raios');map.getSource('raios').setData({type:'FeatureCollection',features:(r||[]).map(([la,lo,i])=>({type:'Feature',properties:{idade:i},geometry:{type:'Point',coordinates:[lo,la]}}))})}
 async function alertas(){const r=await pega('/api/alertas');for(const f of r?.features||[])f.properties.nivel=nivel(f.properties);S.alertas=r;map.getSource('alertas').setData(r?.features?r:VZ);blocoAlertas()}
 const anel=(r,x,y)=>{let d=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const[a,b]=r[i],[c,e]=r[j];if((b>y)!==(e>y)&&x<(c-a)*(y-b)/(e-b)+a)d=!d}return d};
@@ -106,14 +109,16 @@ const escolhe=m=>{if(!m)return;q.value='';q.blur();S.sug=[];mostra();lugar({nome
 q.onkeydown=e=>{const n=S.sug.length;if(e.key=='ArrowDown'&&n){S.sel=(S.sel+1)%n;mostra();e.preventDefault()}else if(e.key=='ArrowUp'&&n){S.sel=(S.sel-1+n)%n;mostra();e.preventDefault()}else if(e.key=='Enter')escolhe(S.sug[S.sel]);else if(e.key=='Escape'){S.sug=[];mostra()}};
 ul.onmousedown=e=>{const li=e.target.closest('li');if(li){e.preventDefault();escolhe(S.sug[li.dataset.i])}};
 q.onblur=()=>{S.sug=[];mostra()};
-if(innerWidth<=900)document.body.classList.add('sem');
+document.body.classList.add('sem');
 $('#recolhe').onclick=()=>document.body.classList.toggle('sem');
 $('#slider').oninput=e=>{S.i=+e.target.value/K();vai()};
 $('#play').onclick=()=>{const b=$('#play');if(S.anim){clearInterval(S.anim);S.anim=null}else S.anim=setInterval(()=>{const s=$('#slider'),k=K(),j=(Math.round(S.i*k)+1)%(+s.max+1);S.i=j/k;s.value=j;vai()},k1());b.setAttribute('aria-pressed',!!S.anim);b.textContent=S.anim?'\u{F03E4}':'\u{F040A}'};
 $('#chips').innerHTML=Object.entries(CHIPS).map(([k,n])=>`<button data-k="${k}" aria-pressed="${S.lig.has(k)}">${n}</button>`).join('');
 $('#chips').onclick=e=>{const k=e.target.dataset?.k;if(k&&V)liga(k,!S.lig.has(k))};
 addEventListener('resize',horas);
-map.on('mousemove',e=>{mira=e.lngLat;cursor()});map.on('mouseout',()=>{mira=null;cursor()});map.on('move',cursor);
+// pill do alerta ao lado do mouse
+function aviso(e){const el=$('#aviso'),fs=e&&S.lig.has('alertas')?map.queryRenderedFeatures(e.point,{layers:['alertas-f']}):[];if(!fs.length){el.hidden=true;return}const vs=new Map(fs.map(f=>[f.properties.evento,f.properties]));el.innerHTML=[...vs.values()].map(p=>`<div class="n${p.nivel}"><span class="g">\u{F0026}</span>${esc(p.evento)}<small>${esc(p.severidade)}</small></div>`).join('');el.style.translate=`${e.point.x+14}px ${e.point.y-14}px`;el.hidden=false}
+map.on('mousemove',e=>{mira=e.lngLat;cursor();aviso(e)});map.on('mouseout',()=>{mira=null;cursor();aviso()});map.on('move',cursor);
 const zc=()=>$('#mapa').classList.toggle('z5',map.getZoom()>=4.6);map.on('zoom',zc);
 map.on('click',e=>{const{lng,lat}=e.lngLat;lugar(nomeado(lat,lng),false);if(S.lig.has('alertas')&&map.queryRenderedFeatures(e.point,{layers:['alertas-f']}).length)$('#alertas').scrollIntoView({behavior:'smooth',block:'nearest'})});
 map.on('load',async()=>{map.getCanvasContainer().appendChild(cv);zc();V=vento(map,cv,P);tinta();for(const k of S.lig)for(const l of CAPAS[k])map.setLayoutProperty(l,'visibility','visible');V.liga(S.lig.has('vento'));legenda();
