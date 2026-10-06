@@ -2,16 +2,17 @@
 use serde::{Serialize, Serializer};
 use std::collections::BTreeMap;
 
-/// Grade 0,5° do Brasil até o sul da Argentina e o Atlântico, por onde chegam as frentes: lat 6 a -50, lon -76 a -20. Índice i = y*NX + x.
-pub const NX: usize = 113;
-pub const NY: usize = 113;
+/// Grade 0,5° da América do Sul e do Atlântico até a África, por onde chegam as frentes: lat 14 a -58, lon -110 a 0. Índice i = y*NX + x.
+pub const NX: usize = 221;
+pub const NY: usize = 145;
 pub const N: usize = NX * NY;
-pub const LAT0: f32 = 6.0;
-pub const LON0: f32 = -76.0;
+pub const LAT0: f32 = 14.0;
+pub const LON0: f32 = -110.0;
 pub const PASSO: f32 = 0.5;
 /// Intervalo entre quadros (s) e horizonte (s).
 pub const QUADRO: i64 = 3 * 3600;
 pub const HORIZONTE: i64 = 72 * 3600;
+pub const PASSADO: i64 = 72 * 3600;
 
 pub fn lat(y: usize) -> f32 {
     LAT0 - y as f32 * PASSO

@@ -1,5 +1,5 @@
 //! ICON, UKMO e CMA pelo Open-Meteo, mais o detalhe de um ponto.
-use crate::modelo::{Campos, LAT0, LON0, NX, NY, PASSO, Previsao, QUADRO};
+use crate::modelo::{Campos, LAT0, LON0, NX, NY, PASSADO, PASSO, Previsao, QUADRO};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -108,6 +108,8 @@ async fn pedir(http: &Client, q: &[(&str, String)]) -> Result<Vec<Resp>, String>
         let r = http
             .get(URL)
             .query(q)
+            // Com past_days=3 um lote de 100 locais leva ~250 s para chegar.
+            .timeout(Duration::from_secs(900))
             .send()
             .await
             .map_err(|e| e.to_string())?;
@@ -158,6 +160,7 @@ async fn buscar(http: &Client, locais: &[(i32, i32)]) -> Result<Vec<Resp>, Strin
             ("models", modelos.clone()),
             ("hourly", HORARIAS.into()),
             ("forecast_days", "4".into()),
+            ("past_days", "3".into()),
             ("timeformat", "unixtime".into()),
             ("timezone", "GMT".into()),
         ];
@@ -322,7 +325,12 @@ pub async fn grades(http: &Client, cache: &Path) -> Result<Vec<Previsao>, String
         .await
         .ok()
         .and_then(|b| serde_json::from_slice::<Cache>(&b).ok())
-        .filter(|c| agora() - c.t < VALIDADE);
+        .filter(|c| agora() - c.t < VALIDADE)
+        // Cache de antes do past_days começa depois de agora-PASSADO: refaz.
+        .filter(|c| {
+            let t0 = c.resp.first().and_then(|r| r.hourly.get("time")?.first().copied()?);
+            t0.is_some_and(|t| t <= (agora() - PASSADO) as f64)
+        });
     let c = match velho {
         Some(c) => c,
         None => {

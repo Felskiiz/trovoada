@@ -14,7 +14,7 @@ Ao subir, o servidor baixa o GFS e o ECMWF em GRIB, o que leva cerca de 35 s. A 
 
 ## Consenso
 
-Grade de 0,5° (lat 6 a −50, lon −76 a −20, para ver as frentes que sobem do sul e do Atlântico; fora da malha de 1° do Open-Meteo votam só ECMWF e GFS), quadros a cada 3 h até +72 h. Votam cinco modelos:
+Grade de 0,5° (lat 14 a −58, lon −110 a 0: a América do Sul inteira e o Atlântico até a África, de onde chegam as frentes; fora da malha de 1° do Open-Meteo votam só ECMWF e GFS), quadros a cada 3 h de −72 h a +72 h, com o agora no meio da linha do tempo; o passado vem das rodadas anteriores de cada modelo. Votam cinco modelos:
 
 - ECMWF IFS, peso 1,25, do GRIB aberto
 - GFS, do filtro NOMADS

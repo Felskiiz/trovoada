@@ -1,5 +1,5 @@
 //! Voto ponderado entre as fontes e campos derivados.
-use crate::modelo::{Campos, Consenso, HORIZONTE, N, NX, NY, Previsao, QUADRO, lat};
+use crate::modelo::{Campos, Consenso, HORIZONTE, N, NX, NY, PASSADO, Previsao, QUADRO, lat};
 
 const LIMIAR_CHUVA: f32 = 0.2;
 const CHUVA_RISCO: f32 = 1.0;
@@ -9,10 +9,10 @@ const RAJADA_RISCO: f32 = 60.0;
 const LIMIAR_FRENTE: f32 = 1.0;
 const KM_GRAU: f32 = 111.0;
 
-/// Instantes válidos (múltiplos de QUADRO) de agora até HORIZONTE cobertos por alguma fonte.
+/// Instantes válidos (múltiplos de QUADRO) de agora-PASSADO até agora+HORIZONTE cobertos por alguma fonte.
 pub fn tempos(prev: &[&Previsao], agora: i64) -> Vec<i64> {
     let fim = agora + HORIZONTE;
-    (agora.div_euclid(QUADRO)..)
+    ((agora - PASSADO).div_euclid(QUADRO)..)
         .map(|k| k * QUADRO)
         .take_while(|&t| t <= fim)
         .filter(|t| prev.iter().any(|p| p.passos.contains_key(t)))
@@ -258,7 +258,11 @@ mod testes {
             passos: [0, T, 100 * QUADRO].map(|t| (t, Campos::vazio())).into(),
         };
         let agora = T + 100;
-        assert_eq!(tempos(&[&p], agora), vec![T]);
+        assert_eq!(tempos(&[&p], agora), vec![0, T]);
         assert_eq!(tempos(&[&p], agora - 20 * QUADRO), vec![0, T]);
+        // Passado entra até PASSADO atrás; o futuro corta em HORIZONTE.
+        assert_eq!(tempos(&[&p], PASSADO + QUADRO), vec![T]);
+        assert_eq!(tempos(&[&p], T + PASSADO + QUADRO - 1), vec![T]);
+        assert!(tempos(&[&p], T + PASSADO + QUADRO).is_empty());
     }
 }

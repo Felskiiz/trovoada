@@ -170,6 +170,7 @@ async fn tempos(State(a): St) -> Json<Value> {
     let c = a.consenso.read().await;
     let st = a.status.read().await;
     Json(json!({
+        "agora": agora(),
         "tempos": c.iter().map(|c| c.tempo).collect::<Vec<_>>(),
         "fontes": *st,
         "grade": {"nx": modelo::NX, "ny": modelo::NY, "lat0": modelo::LAT0, "lon0": modelo::LON0, "passo": modelo::PASSO},

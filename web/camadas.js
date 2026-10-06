@@ -1,4 +1,4 @@
-export const G={nx:113,ny:113,lat0:6,lon0:-76,passo:.5};
+export const G={nx:221,ny:145,lat0:14,lon0:-110,passo:.5};
 export const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 export const mix=(a,b,f)=>a.map((x,i)=>x+(b[i]-x)*f);
 export const sst=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
@@ -17,6 +17,8 @@ export function cantos(){const p=G.passo,w=G.lon0-p/2,e=G.lon0+(G.nx-.5)*p,n=G.l
 // linhas do canvas espaçadas em Mercator: a image source estica linear entre os cantos; o desfoque tira o degrau da grade de 0,5°
 const B=document.createElement('canvas');
 export function pinta(cv,fn,e=8,blur=3){const p=G.passo,W=G.nx*e,H=G.ny*e,n=merc(G.lat0+p/2),s=merc(G.lat0-(G.ny-.5)*p);cv.width=W;cv.height=H;const cx=cv.getContext('2d'),im=cx.createImageData(W,H),d=im.data;for(let r=0;r<H;r++){const gy=(G.lat0-imerc(n+(s-n)*(r+.5)/H))/p;for(let c=0;c<W;c++){const o=fn((c+.5)/W*G.nx-.5,gy);if(!o)continue;const k=(r*W+c)*4;d[k]=o[0];d[k+1]=o[1];d[k+2]=o[2];d[k+3]=o[3]*255}}cx.putImageData(im,0,0);if(!blur)return cv.toDataURL();B.width=W;B.height=H;const b=B.getContext('2d');b.filter=`blur(${blur}px)`;b.drawImage(cv,0,0);return B.toDataURL()}
+// grade suavizada (3x3 ponderado, ignora null): os degraus das faixas saem curvos em vez de seguir a malha de 0,5°
+export function suave(a){const nx=G.nx,ny=G.ny,o=new Array(a.length);for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){let s=0,w=0;for(let j=-1;j<=1;j++)for(let k=-1;k<=1;k++){const yy=y+j,xx=x+k;if(yy<0||xx<0||yy>=ny||xx>=nx)continue;const v=a[yy*nx+xx];if(v==null)continue;const q=(2-Math.abs(j))*(2-Math.abs(k));s+=v*q;w+=q}o[y*nx+x]=w?s/w:null}return o}
 // frente (-1 fria, 1 quente por célula) em linhas: encadeia vizinhas do mesmo tipo, descarta trecho curto e suaviza (Chaikin)
 export function frentes(fr,min=5){const nx=G.nx,ny=G.ny,p=G.passo,vis=new Uint8Array(fr.length),f=[];const viz=i=>{const y=i/nx|0,x=i%nx,o=[];for(let j=-1;j<=1;j++)for(let k=-1;k<=1;k++){const yy=y+j,xx=x+k;if((j||k)&&yy>=0&&xx>=0&&yy<ny&&xx<nx&&fr[yy*nx+xx]==fr[i])o.push([yy*nx+xx,j&&k?1:0])}return o};const livre=i=>viz(i).filter(([n])=>!vis[n]);
 const pts=a=>a.map(i=>[G.lon0+i%nx*p,G.lat0-(i/nx|0)*p]),chaikin=l=>{const o=[l[0]];for(let i=0;i<l.length-1;i++){const[a,b]=l[i],[c,d]=l[i+1];o.push([.75*a+.25*c,.75*b+.25*d],[.25*a+.75*c,.25*b+.75*d])}o.push(l.at(-1));return o};

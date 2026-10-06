@@ -1,5 +1,5 @@
 import * as maplibregl from './vendor/maplibre-gl.mjs';
-import {G,rgb,mix,sst,amostra,rampa,pinta,cantos,frentes,vento} from './camadas.js';
+import {G,rgb,mix,sst,amostra,rampa,pinta,cantos,frentes,vento,suave} from './camadas.js';
 const $=s=>document.querySelector(s);
 const P={},C={};
 const pega=async u=>{try{const r=await fetch(u);return r.ok?await r.json():null}catch{return null}};
@@ -25,7 +25,7 @@ const R=(id,o=1)=>({id,type:'raster',source:id,layout:{visibility:'none'},paint:
 const im=()=>({type:'image',url:VAZIO,coordinates:cantos()}),gj=()=>({type:'geojson',data:VZ});
 const map=new maplibregl.Map({container:'mapa',style:{version:8,sources:{paises:{type:'geojson',data:'dados/paises.json'},ufs:{type:'geojson',data:'dados/ufs.json'},chuva:im(),massas:im(),tempestade:im(),radar:{type:'raster',tiles:['/tile/radar/0/{z}/{x}/{y}.png'],tileSize:256,maxzoom:7},ir:{type:'raster',tiles:['/tile/ir/0/{z}/{x}/{y}.png'],tileSize:256,maxzoom:6},frentes:gj(),alertas:gj(),raios:gj()},
 layers:[{id:'fundo',type:'background'},{id:'paises',type:'fill',source:'paises'},{id:'ufs',type:'fill',source:'ufs'},R('ir',.85),R('massas'),R('chuva'),R('tempestade'),R('radar',.85),{id:'ufs-l',type:'line',source:'ufs',paint:{'line-opacity':.14,'line-width':.6}},{id:'paises-l',type:'line',source:'paises',paint:{'line-opacity':.32,'line-width':.8}},{id:'frentes-b',type:'line',source:'frentes',layout:{visibility:'none','line-cap':'round','line-join':'round'},paint:{'line-width':5.5,'line-opacity':.9,'line-blur':.5}},{id:'frentes',type:'line',source:'frentes',layout:{visibility:'none','line-cap':'round','line-join':'round'},paint:{'line-width':2.6}},{id:'alertas-f',type:'fill',source:'alertas',layout:{visibility:'none'},paint:{'fill-opacity':['match',['get','nivel'],2,.3,1,.2,.14]}},{id:'alertas-l',type:'line',source:'alertas',layout:{visibility:'none'},paint:{'line-width':['match',['get','nivel'],2,1.8,1.2],'line-opacity':.9}},{id:'raios',type:'circle',source:'raios',layout:{visibility:'none'},paint:{'circle-radius':2.4,'circle-opacity':['interpolate',['linear'],['get','idade'],0,1,1800,.12]}}]},
-bounds:[[-75,-47],[-28,5.5]],fitBoundsOptions:{padding:{top:60,bottom:70,left:20,right:innerWidth>900?414:20}},maxBounds:[[-125,-62],[5,22]],attributionControl:false,dragRotate:false,pitchWithRotate:false,renderWorldCopies:false});
+bounds:[[-75,-47],[-28,5.5]],fitBoundsOptions:{padding:{top:60,bottom:70,left:20,right:innerWidth>900?414:20}},maxBounds:[[-110.25,-58.25],[.25,14.25]],attributionControl:false,dragRotate:false,pitchWithRotate:false,renderWorldCopies:false});
 map.touchZoomRotate.disableRotation();map.on('error',()=>{});
 const cv=Object.assign(document.createElement('canvas'),{id:'vento'}),tela=document.createElement('canvas');
 const marca=new maplibregl.Marker({element:Object.assign(document.createElement('div'),{className:'lugar'})});
@@ -33,21 +33,24 @@ let V;
 function tinta(){const nv=['match',['get','nivel'],0,P.ocre,P.ferro];for(const[l,k,v]of[['fundo','background-color',P.breu],['paises','fill-color',P.barro],['ufs','fill-color',P.limo],['ufs-l','line-color',P.areia],['paises-l','line-color',P.areia],['frentes-b','line-color',P.breu],['frentes','line-color',['match',['get','tipo'],-1,P.areia,P.ferro]],['raios','circle-color',P.acento_forte],['alertas-f','fill-color',nv],['alertas-l','line-color',nv]])map.setPaintProperty(l,k,v)}
 // cor do INMET só decide o nível; a cor final vem da paleta
 function nivel(p){const s=sem(`${p.severidade||''} ${p.cor||''}`);return /grande|vermelh|#f00\b|#ff0000/.test(s)?2:/potencial|amarel|#ff0\b|#ffff00/.test(s)?0:1}
-const CH=()=>[[.2,C.areia],[1,C.musgo],[5,C.acento],[12,C.ocre],[30,C.ferro]];
-function desenha(){const f=S.campo,img=(k,ok,fn)=>map.getSource(k).updateImage({url:S.lig.has(k)&&f&&ok&&!S.modo?pinta(tela,fn):VAZIO,coordinates:cantos()});
-img('chuva',f?.chuva,(x,y)=>{const v=amostra(f.chuva,x,y);if(v==null||v<.15)return null;const vo=f.votos_chuva?amostra(f.votos_chuva,x,y):null,fo=f.fontes?amostra(f.fontes,x,y):null,c=vo!=null&&fo?Math.min(1,vo/fo):1,k=rampa(CH(),Math.max(.2,v));k[3]=(.45+.5*c*c)*sst(.12,.6,v);return k});
+// faixas discretas como refletividade de radar; contorno claro em cada degrau
+const CH=()=>[[.2,mix(C.limo,C.musgo,.5)],[1,C.musgo],[4,C.acento],[10,C.ocre],[25,C.ferro],[50,C.areia]],faixa=(st,v)=>{let b=-1;for(const[s]of st){if(v<s)break;b++}return b};
+function desenha(){const f=S.campo,img=(k,ok,fn,b)=>map.getSource(k).updateImage({url:S.lig.has(k)&&f&&ok&&!S.modo?pinta(tela,fn,8,b):VAZIO,coordinates:cantos()});
+img('chuva',f?.chuva,f?.chuva&&(()=>{const st=CH(),ch=suave(f.chuva),d=.2,nv=(x,y)=>{const v=amostra(ch,x,y);return v==null?-1:faixa(st,v)};return(x,y)=>{const b=nv(x,y);if(b<0)return null;if(nv(x+d,y)<b||nv(x-d,y)<b||nv(x,y+d)<b||nv(x,y-d)<b)return[...mix(st[b][1],C.areia,.35),1];const vo=f.votos_chuva?amostra(f.votos_chuva,x,y):null,fo=f.fontes?amostra(f.fontes,x,y):null;if(vo!=null&&fo&&vo/fo<.75&&((x+y)*2|0)&1)return null;return[...st[b][1],.4+.09*b]}})(),.6);
 img('massas',f?.anom850,(x,y)=>{const a=amostra(f.anom850,x,y);if(a==null)return null;const t=Math.min(1,Math.abs(a)/7),al=.72*sst(.12,.8,t);return al>.01?[...(a<0?C.areia:mix(C.ocre,C.ferro,sst(.2,1,t))),al]:null});
 img('tempestade',f?.risco,(x,y)=>{const r=amostra(f.risco,x,y);if(r==null||r<.5)return null;return[...mix(C.ocre,C.ferro,Math.min(1,Math.max(0,(r-1)/2))),(.18+.14*r)*sst(.5,1,r)]});
 map.getSource('frentes').setData(S.lig.has('massas')&&f?.fl&&!S.modo?f.fl:VZ);
 V.dados(f?.u,f?.v)}
-async function campo(t){if(t==null)return null;if(!S.cache.has(t))S.cache.set(t,pega('/api/campo?t='+t).then(f=>{if(!f)S.cache.delete(t);else if(f.frente)f.fl=frentes(f.frente,10);return f}));return S.cache.get(t)}
+async function campo(t){if(t==null)return null;if(!S.cache.has(t)){if(S.cache.size>16)S.cache.delete(S.cache.keys().next().value);S.cache.set(t,pega('/api/campo?t='+t).then(f=>{if(!f)S.cache.delete(t);else if(f.frente)f.fl=frentes(f.frente,10);return f}))}return S.cache.get(t)}
 const agoraIdx=()=>{const n=Date.now()/1e3;let b=0;S.tempos.forEach((t,i)=>{if(Math.abs(t-n)<Math.abs(S.tempos[b]-n))b=i});return b};
 function radarEm(t){if(t==null||t===S.rt)return;S.rt=t;map.getSource('radar').setTiles([`/tile/radar/${t}/{z}/{x}/{y}.png`])}
 async function vai(){const s=$('#slider');S.i=Math.min(+s.max,S.i);if(S.modo){const q=S.radar[S.i];$('#instante').textContent=relogio(q.t);radarEm(q.t);return}radarEm(S.radar.at(-1)?.t);const t=S.tempos[S.i];$('#instante').textContent=hora(t);const f=await campo(t);if(t!==S.tempos[S.i]||S.modo)return;S.campo=f;desenha();campo(S.tempos[S.i+1])}
 // radar sozinho (sem camada de previsão) faz a linha do tempo andar pelos quadros dele
-function linha(forca){const r=S.lig.has('radar')&&!PREV.some(k=>S.lig.has(k))&&S.radar.length>0,n=r?S.radar.length:S.tempos.length,s=$('#slider');$('#tempo').hidden=!n;if(!n)return;if(forca||r!==S.modo){S.modo=r;S.i=r?n-1:agoraIdx()}s.max=n-1;s.value=S.i;vai()}
+function linha(forca){const r=S.lig.has('radar')&&!PREV.some(k=>S.lig.has(k))&&S.radar.length>0,n=r?S.radar.length:S.tempos.length,s=$('#slider');$('#tempo').hidden=!n;if(!n)return;if(forca||r!==S.modo){S.modo=r;S.i=r?n-1:agoraIdx()}s.max=n-1;s.value=S.i;marcas();vai()}
+// trilho: passado fino, futuro grosso, rótulo de cada dia à meia-noite e o agora no meio
+function marcas(){const s=$('#slider'),el=$('#dias'),m=+s.max;if(S.modo||!m){el.innerHTML='';s.style.removeProperty('--ag');return}const a=agoraIdx(),p=i=>`left:calc(7px + (100% - 14px)*${i/m})`;s.style.setProperty('--ag',a/m*100+'%');el.innerHTML=S.tempos.map((t,i)=>data(t).getHours()<3&&Math.abs(i-a)>3?`<span style="${p(i)}">${DIAS[data(t).getDay()]}</span>`:'').join('')+`<span class="ag" style="${p(a)}">agora</span>`}
 const sw=k=>`<i style="background:var(--${k})"></i>`;
-const LEG={chuva:()=>`${sw('areia')}0,2${sw('musgo')}1${sw('acento')}5${sw('ocre')}12${sw('ferro')}30 mm/h`,vento:()=>`${sw('areia')}0${sw('ocre')}20${sw('ferro')}45 km/h`,massas:()=>`${sw('areia')}fria${sw('ferro')}quente`,tempestade:()=>`${sw('ocre')}1${sw('ferro')}3`};
+const LEG={chuva:()=>CH().map(([v,c])=>`<i style="background:rgb(${c})"></i>${String(v).replace('.',',')}`).join('')+' mm/h',vento:()=>`${sw('areia')}0${sw('ocre')}20${sw('ferro')}45 km/h`,massas:()=>`${sw('areia')}fria${sw('ferro')}quente`,tempestade:()=>`${sw('ocre')}1${sw('ferro')}3`};
 function legenda(){const k=[S.ultima,...S.lig].find(k=>S.lig.has(k)&&LEG[k]),el=$('#legenda');el.hidden=!k;if(k)el.innerHTML=LEG[k]()}
 function liga(k,on){on?S.lig.add(k):S.lig.delete(k);if(on)S.ultima=k;$(`#chips [data-k="${k}"]`).setAttribute('aria-pressed',on);for(const l of CAPAS[k])map.setLayoutProperty(l,'visibility',on?'visible':'none');if(k=='vento')V.liga(on);if(k=='raios')raios();legenda();linha()}
 async function tempos(){const r=await pega('/api/tempos');if(!r)return;if(r.grade)Object.assign(G,r.grade);S.fontes=r.fontes;rodape();const novo=JSON.stringify(r.tempos)!==JSON.stringify(S.tempos);S.tempos=r.tempos||[];S.cache.clear();S.agora=S.tempos.length?await campo(S.tempos[agoraIdx()]):null;agoraBloco();linha(novo)}

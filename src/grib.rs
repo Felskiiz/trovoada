@@ -1,10 +1,10 @@
 //! GFS (NOMADS) e ECMWF IFS (open data) em GRIB2, recortados para a grade.
-use crate::modelo::{Campos, LAT0, LON0, N, NX, NY, PASSO, Previsao};
+use crate::modelo::{Campos, LAT0, LON0, N, NX, NY, PASSADO, PASSO, Previsao};
 use grib::LatLons;
 use reqwest::Client;
 use serde_json::Value;
 use std::{
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     future::Future,
     sync::{Arc, Mutex},
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -13,6 +13,9 @@ use tokio::sync::Semaphore;
 
 static GFS: Mutex<Option<Previsao>> = Mutex::new(None);
 static ECMWF: Mutex<Option<Previsao>> = Mutex::new(None);
+/// Passos já baixados das rodadas passadas, por rodada.
+static GFS_PASSADO: Mutex<BTreeMap<i64, BTreeMap<i64, Campos>>> = Mutex::new(BTreeMap::new());
+static ECMWF_PASSADO: Mutex<BTreeMap<i64, BTreeMap<i64, Campos>>> = Mutex::new(BTreeMap::new());
 
 const PASSOS: std::ops::RangeInclusive<u32> = 0..=24; // x3 h = f000 a f072
 
@@ -91,10 +94,13 @@ async fn decodifica_async(bytes: Vec<u8>) -> Result<Vec<Msg>, String> {
         .map_err(|e| e.to_string())?
 }
 
-/// GET com 2 tentativas; `faixa` = (offset, tamanho) vira Range.
+/// GET com 3 tentativas; `faixa` = (offset, tamanho) vira Range.
 async fn baixa(http: &Client, url: &str, faixa: Option<(u64, u64)>) -> Result<Vec<u8>, String> {
     let mut erro = String::new();
-    for _ in 0..2 {
+    for i in 0..3 {
+        if i > 0 {
+            tokio::time::sleep(Duration::from_secs(2 * i)).await; // S3 responde 503 Slow Down
+        }
         let mut rq = http.get(url).timeout(Duration::from_secs(90));
         if let Some((o, l)) = faixa {
             rq = rq.header("Range", format!("bytes={}-{}", o, o + l - 1));
@@ -175,7 +181,7 @@ fn em_cache(c: &Mutex<Option<Previsao>>, r: i64) -> Option<Previsao> {
 fn url_gfs(r: i64, f: u32) -> String {
     let (d, h) = (ymd(r), r.rem_euclid(86400) / 3600);
     format!(
-        "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.{d}%2F{h:02}%2Fatmos&file=gfs.t{h:02}z.pgrb2.0p25.f{f:03}&var_APCP=on&var_CAPE=on&var_TMP=on&var_PRMSL=on&var_GUST=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_850_mb=on&lev_mean_sea_level=on&lev_10_m_above_ground=on&lev_2_m_above_ground=on&subregion=&toplat=6&leftlon=284&rightlon=340&bottomlat=-50"
+        "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.{d}%2F{h:02}%2Fatmos&file=gfs.t{h:02}z.pgrb2.0p25.f{f:03}&var_APCP=on&var_CAPE=on&var_TMP=on&var_PRMSL=on&var_GUST=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_850_mb=on&lev_mean_sea_level=on&lev_10_m_above_ground=on&lev_2_m_above_ground=on&subregion=&toplat=14&leftlon=250&rightlon=360&bottomlat=-58"
     )
 }
 
@@ -215,6 +221,67 @@ fn campo(
         .map(|m| m.campo.iter().map(|x| f(*x)).collect())
 }
 
+/// Baixa e decodifica os passos `fs` (horas) de uma rodada do GFS, indexados pelo instante válido.
+async fn gfs_rodada(
+    http: &Client,
+    r: i64,
+    fs: Vec<u32>,
+) -> Result<BTreeMap<i64, Campos>, String> {
+    let h = http.clone();
+    let msgs = paralelo(fs.into_iter(), |f| {
+        let h = h.clone();
+        async move {
+            let b = baixa(&h, &url_gfs(r, f), None).await?;
+            decodifica_async(b).await
+        }
+    })
+    .await?;
+    let mut acum = HashMap::new();
+    for (f, ms) in &msgs {
+        for m in ms.iter().filter(|m| (m.cat, m.num) == (1, 8) && m.dur > 0) {
+            acum.insert((m.ini, *f), m.campo.clone());
+        }
+    }
+    let mut passos = BTreeMap::new();
+    for (f, ms) in msgs {
+        let mut c = Campos::vazio();
+        let pega = |dst: &mut Vec<f32>, v: Option<Vec<f32>>| {
+            if let Some(v) = v {
+                *dst = v;
+            }
+        };
+        pega(&mut c.pmsl, campo(&ms, 3, 1, 101, 0.0, |x| x / 100.0));
+        pega(&mut c.rajada, campo(&ms, 2, 22, 1, 0.0, |x| x * 3.6));
+        pega(&mut c.t850, campo(&ms, 0, 0, 100, 85000.0, |x| x - 273.15));
+        pega(&mut c.t2m, campo(&ms, 0, 0, 103, 2.0, |x| x - 273.15));
+        pega(&mut c.u, campo(&ms, 2, 2, 103, 10.0, |x| x));
+        pega(&mut c.v, campo(&ms, 2, 3, 103, 10.0, |x| x));
+        pega(&mut c.cape, campo(&ms, 7, 6, 1, 0.0, |x| x));
+        pega(&mut c.chuva, chuva_gfs(&acum, f));
+        passos.insert(r + f as i64 * 3600, c);
+    }
+    Ok(passos)
+}
+
+/// Rodadas (múltiplos de `ciclo` h) anteriores a `atual` que ainda cobrem [agora-PASSADO, atual).
+fn rodadas_passadas(agora: i64, atual: i64, ciclo: i64) -> Vec<i64> {
+    let c = ciclo * 3600;
+    let ini = (agora - PASSADO - c).div_euclid(c) * c;
+    (ini..atual).step_by(c as usize).collect()
+}
+
+/// Acrescenta `novo` sobre `base`: no mesmo instante o novo vence, menos a chuva que ele não traz (f000).
+fn funde(base: &mut BTreeMap<i64, Campos>, novo: BTreeMap<i64, Campos>) {
+    for (t, mut c) in novo {
+        if let Some(velho) = base.get(&t) {
+            if c.chuva.iter().all(|x| x.is_nan()) {
+                c.chuva = velho.chuva.clone();
+            }
+        }
+        base.insert(t, c);
+    }
+}
+
 pub async fn gfs(http: &Client) -> Result<Previsao, String> {
     let mut erro = "sem rodada".to_string();
     for r in rodadas(agora(), &[18, 12, 6, 0]) {
@@ -234,53 +301,50 @@ pub async fn gfs(http: &Client) -> Result<Previsao, String> {
             }
         }
         // ponytail: f072 é baixado duas vezes (teste de existência e passo), 450 KB/h.
-        let h = http.clone();
-        let msgs = paralelo(PASSOS.map(|p| p * 3), |f| {
-            let h = h.clone();
-            async move {
-                let b = baixa(&h, &url_gfs(r, f), None).await?;
-                decodifica_async(b).await
-            }
-        })
-        .await?;
-        let mut acum = HashMap::new();
-        for (f, ms) in &msgs {
-            for m in ms.iter().filter(|m| (m.cat, m.num) == (1, 8) && m.dur > 0) {
-                acum.insert((m.ini, *f), m.campo.clone());
-            }
+        let atual = gfs_rodada(http, r, PASSOS.map(|p| p * 3).collect()).await?;
+        // Passado: f003 e f006 de cada rodada anterior; rodada já baixada fica no cache.
+        let mut passos = BTreeMap::new();
+        let velhas = rodadas_passadas(agora(), r, 6);
+        for q in velhas.iter().copied() {
+            let cache = GFS_PASSADO.lock().unwrap().get(&q).cloned();
+            let ps = match cache {
+                Some(ps) => ps,
+                None => match gfs_rodada(http, q, vec![3, 6]).await {
+                    Ok(ps) => {
+                        GFS_PASSADO.lock().unwrap().insert(q, ps.clone());
+                        ps
+                    }
+                    Err(e) => {
+                        eprintln!("gfs: rodada passada {} {:02}z pulada: {e}", ymd(q), q.rem_euclid(86400) / 3600);
+                        continue;
+                    }
+                },
+            };
+            funde(&mut passos, ps);
         }
-        let mut p = Previsao {
+        GFS_PASSADO.lock().unwrap().retain(|q, _| velhas.contains(q));
+        funde(&mut passos, atual);
+        let p = Previsao {
             fonte: "gfs",
             rodada: r,
-            passos: Default::default(),
+            passos,
         };
-        for (f, ms) in msgs {
-            let mut c = Campos::vazio();
-            let pega = |dst: &mut Vec<f32>, v: Option<Vec<f32>>| {
-                if let Some(v) = v {
-                    *dst = v;
-                }
-            };
-            pega(&mut c.pmsl, campo(&ms, 3, 1, 101, 0.0, |x| x / 100.0));
-            pega(&mut c.rajada, campo(&ms, 2, 22, 1, 0.0, |x| x * 3.6));
-            pega(&mut c.t850, campo(&ms, 0, 0, 100, 85000.0, |x| x - 273.15));
-            pega(&mut c.t2m, campo(&ms, 0, 0, 103, 2.0, |x| x - 273.15));
-            pega(&mut c.u, campo(&ms, 2, 2, 103, 10.0, |x| x));
-            pega(&mut c.v, campo(&ms, 2, 3, 103, 10.0, |x| x));
-            pega(&mut c.cape, campo(&ms, 7, 6, 1, 0.0, |x| x));
-            pega(&mut c.chuva, chuva_gfs(&acum, f));
-            p.passos.insert(r + f as i64 * 3600, c);
-        }
         *GFS.lock().unwrap() = Some(p.clone());
         return Ok(p);
     }
     Err(erro)
 }
 
-fn url_ecmwf(r: i64, passo: u32) -> String {
+/// `aws`: espelho S3, que guarda mais dias que o data.ecmwf.int (usado nas rodadas passadas).
+fn url_ecmwf(r: i64, passo: u32, aws: bool) -> String {
     let (d, h) = (ymd(r), r.rem_euclid(86400) / 3600);
+    let base = if aws {
+        "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com"
+    } else {
+        "https://data.ecmwf.int/forecasts"
+    };
     format!(
-        "https://data.ecmwf.int/forecasts/{d}/{h:02}z/ifs/0p25/oper/{d}{h:02}0000-{passo}h-oper-fc.grib2"
+        "{base}/{d}/{h:02}z/ifs/0p25/oper/{d}{h:02}0000-{passo}h-oper-fc.grib2"
     )
 }
 
@@ -305,8 +369,9 @@ async fn passo_ecmwf(
     http: Client,
     r: i64,
     passo: u32,
+    aws: bool,
 ) -> Result<(Campos, Option<Vec<f32>>), String> {
-    let url = url_ecmwf(r, passo);
+    let url = url_ecmwf(r, passo, aws);
     let idx =
         String::from_utf8(baixa(&http, &indice(&url), None).await?).map_err(|e| e.to_string())?;
     let linhas: Vec<Value> = idx
@@ -345,6 +410,31 @@ async fn passo_ecmwf(
     Ok((c, tp))
 }
 
+/// Baixa os passos `ss` (h, a partir de 3 ou 0) de uma rodada do IFS; a chuva (dif_tp) começa em zero no passo 3.
+async fn ecmwf_rodada(
+    http: &Client,
+    r: i64,
+    ss: Vec<u32>,
+    aws: bool,
+) -> Result<BTreeMap<i64, Campos>, String> {
+    let h = http.clone();
+    let mut passos = paralelo(ss.into_iter(), |s| passo_ecmwf(h.clone(), r, s, aws)).await?;
+    passos.sort_by_key(|(s, _)| *s);
+    let mut out = BTreeMap::new();
+    let mut ant: Option<Vec<f32>> = None;
+    for (s, (mut c, tp)) in passos {
+        if let Some(tp) = tp {
+            if s >= 3 {
+                let zero = vec![0.0; N];
+                c.chuva = dif_tp(&tp, ant.as_deref().unwrap_or(&zero));
+            }
+            ant = Some(tp);
+        }
+        out.insert(r + s as i64 * 3600, c);
+    }
+    Ok(out)
+}
+
 pub async fn ecmwf(http: &Client) -> Result<Previsao, String> {
     let mut erro = "sem rodada".to_string();
     for r in rodadas(agora(), &[12, 0]) {
@@ -352,29 +442,38 @@ pub async fn ecmwf(http: &Client) -> Result<Previsao, String> {
             return Ok(p);
         }
         // Existe quando o índice do passo 72 responde 200.
-        if let Err(e) = baixa(http, &indice(&url_ecmwf(r, 72)), None).await {
+        if let Err(e) = baixa(http, &indice(&url_ecmwf(r, 72, false)), None).await {
             erro = e;
             continue;
         }
-        let h = http.clone();
-        let mut passos = paralelo(PASSOS.map(|p| p * 3), |s| passo_ecmwf(h.clone(), r, s)).await?;
-        passos.sort_by_key(|(s, _)| *s);
-        let mut p = Previsao {
+        let atual = ecmwf_rodada(http, r, PASSOS.map(|p| p * 3).collect(), false).await?;
+        // Passado: passos 3 a 12 de cada rodada anterior (00/12), pelo espelho AWS.
+        let mut passos = BTreeMap::new();
+        let velhas = rodadas_passadas(agora(), r, 12);
+        for q in velhas.iter().copied() {
+            let cache = ECMWF_PASSADO.lock().unwrap().get(&q).cloned();
+            let ps = match cache {
+                Some(ps) => ps,
+                None => match ecmwf_rodada(http, q, vec![3, 6, 9, 12], true).await {
+                    Ok(ps) => {
+                        ECMWF_PASSADO.lock().unwrap().insert(q, ps.clone());
+                        ps
+                    }
+                    Err(e) => {
+                        eprintln!("ecmwf: rodada passada {} {:02}z pulada: {e}", ymd(q), q.rem_euclid(86400) / 3600);
+                        continue;
+                    }
+                },
+            };
+            funde(&mut passos, ps);
+        }
+        ECMWF_PASSADO.lock().unwrap().retain(|q, _| velhas.contains(q));
+        funde(&mut passos, atual);
+        let p = Previsao {
             fonte: "ecmwf",
             rodada: r,
-            passos: Default::default(),
+            passos,
         };
-        let mut ant: Option<Vec<f32>> = None;
-        for (s, (mut c, tp)) in passos {
-            if let Some(tp) = tp {
-                if s >= 3 {
-                    let zero = vec![0.0; N];
-                    c.chuva = dif_tp(&tp, ant.as_deref().unwrap_or(&zero));
-                }
-                ant = Some(tp);
-            }
-            p.passos.insert(r + s as i64 * 3600, c);
-        }
         *ECMWF.lock().unwrap() = Some(p.clone());
         return Ok(p);
     }
@@ -458,7 +557,7 @@ mod testes {
                 c.t2m[m],
                 c.pmsl[a]
             );
-            assert!(p.passos.len() == 25 && p.passos.keys().all(|t| t % QUADRO == 0));
+            assert!(p.passos.len() >= 25 && p.passos.keys().all(|t| t % QUADRO == 0));
             for x in [c.pmsl[l], c.pmsl[m], c.pmsl[a]] {
                 assert!((1000.0..1030.0).contains(&x), "pmsl {x}");
             }
