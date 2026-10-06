@@ -96,7 +96,7 @@ tbody tr{border-top:1px solid var(--limo)}
 body.sem #painel{translate:calc(100% + 28px) 0}
 @media (max-width:900px){
 body,body.sem{--pw:0px;--ph:62dvh}
-body.sem{--ph:150px}
+body.sem{--ph:0px}
 #chips{top:10px;left:10px;right:54px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;pointer-events:auto}
 #chips::-webkit-scrollbar{display:none}
 #chips button{flex:none;padding:7px 13px}
@@ -108,7 +108,8 @@ body.sem{--ph:150px}
 #slider::-moz-range-thumb{width:20px;height:20px}
 #slider::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px}
 #slider{height:28px}
-#painel,body.sem #painel{top:auto;left:0;right:0;bottom:0;width:auto;height:var(--ph);translate:none;border-radius:22px 22px 0 0;padding:16px 16px 22px;gap:10px;transition:height .5s var(--petricor)}
+#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:16px 16px 22px;gap:10px}
+body.sem #painel{translate:0 calc(100% + 10px)}
 #agora{gap:0 16px}
 .temp{font-size:64px}
 .nome{font-size:18px}
