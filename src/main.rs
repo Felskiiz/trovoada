@@ -27,7 +27,7 @@ use std::{
 use tokio::sync::RwLock;
 use tower_http::services::ServeDir;
 
-const ENDERECO: &str = "127.0.0.1:8077";
+const ENDERECO: &str = "0.0.0.0:8077";
 
 struct App {
     http: reqwest::Client,

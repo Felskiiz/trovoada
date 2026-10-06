@@ -94,4 +94,22 @@ tbody tr{border-top:1px solid var(--limo)}
 #rodape{font:10px var(--mono);display:flex;flex-wrap:wrap;gap:4px 14px;padding:0 2px;margin-top:auto}
 .erro{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ferro);margin-left:4px;vertical-align:middle}
 body.sem #painel{translate:calc(100% + 28px) 0}
-@media (max-width:900px){body,body.sem{overflow:visible;height:auto;--pw:0px}#lado{position:relative;height:70vh}#recolhe{display:none}#painel,body.sem #painel{position:static;width:auto;border-radius:0;translate:none;overflow:visible}.temp{font-size:88px}}
+@media (max-width:900px){
+body,body.sem{--pw:0px;--ph:62dvh}
+body.sem{--ph:150px}
+#chips{top:10px;left:10px;right:54px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;pointer-events:auto}
+#chips::-webkit-scrollbar{display:none}
+#chips button{flex:none;padding:7px 13px}
+#recolhe{top:10px;right:10px;width:36px;height:36px;rotate:90deg}
+#legenda{top:54px;right:10px;width:180px;padding:6px 10px 4px;font-size:10px}
+#legenda .item+.item{margin-top:6px}
+#legenda .barra{height:6px;margin:4px 0 2px}
+#tempo{left:8px;right:8px;bottom:calc(var(--ph) + 8px);transition:bottom .5s var(--petricor);padding-right:14px}
+#slider::-moz-range-thumb{width:20px;height:20px}
+#slider::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px}
+#slider{height:28px}
+#painel,body.sem #painel{top:auto;left:0;right:0;bottom:0;width:auto;height:var(--ph);translate:none;border-radius:22px 22px 0 0;padding:16px 16px 22px;gap:10px;transition:height .5s var(--petricor)}
+#agora{gap:0 16px}
+.temp{font-size:64px}
+.nome{font-size:18px}
+}
