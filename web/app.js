@@ -1,7 +1,7 @@
 import * as maplibregl from './vendor/maplibre-gl.mjs';
 import {G,rgb,mix,sst,amostra,rampa,pinta,cantos,frentes,vento,suave,centros} from './camadas.js';
-// 6 passos de 30 min por quadro de 3 h; radar e satélite andam quadro a quadro (10 min)
-const K=()=>S.modo?1:6,k1=()=>S.modo?1e3:300;
+// 12 passos de 15 min por quadro de 3 h; radar e satélite andam quadro a quadro (10 min); k1 é o ms por passo em 1×
+const K=()=>S.modo?1:12,k1=()=>S.modo?1e3:200;
 // entre dois quadros: campos interpolados linearmente; frentes do mais próximo
 const mistura=(a,b,r)=>{const L=k=>a[k]&&b[k]?a[k].map((v,j)=>v==null?b[k][j]:b[k][j]==null?v:v+(b[k][j]-v)*r):a[k]||b[k],o={...(r<.5?a:b)};for(const k of['chuva','u','v','am','risco','votos_chuva','fontes','t2m'])o[k]=L(k);return o};
 const $=s=>document.querySelector(s);
@@ -22,7 +22,7 @@ const CHIPS={chuva:'chuva',radar:'radar',ir:'satélite',vento:'vento',massas:'ma
 const CAPAS={chuva:['chuva'],radar:['radar'],ir:['ir'],vento:[],massas:['massas','frentes-b','frentes','frentes-s'],tempestade:['tempestade'],raios:['raios'],alertas:['alertas-f','alertas-l']};
 const VZ={type:'FeatureCollection',features:[]};
 const VAZIO=Object.assign(document.createElement('canvas'),{width:1,height:1}).toDataURL();
-const S={tempos:[],radar:[],ir:[],obs:[],i:0,modo:null,campo:null,agora:null,lugar:null,ponto:null,alertas:null,fontes:null,lig:new Set(['chuva','vento']),munis:[],sug:[],sel:0,cache:new Map(),anim:null};
+const S={vel:1,tempos:[],radar:[],ir:[],obs:[],i:0,modo:null,campo:null,agora:null,lugar:null,ponto:null,alertas:null,fontes:null,lig:new Set(['chuva','vento']),munis:[],sug:[],sel:0,cache:new Map(),anim:null};
 async function cores(){const c=await pega('/api/cores');if(!c)return false;Object.assign(P,c);for(const k in P){if(!/^#[0-9a-f]{6}$/i.test(P[k]))continue;C[k]=rgb(P[k]);document.documentElement.style.setProperty('--'+k.replace('_','-'),P[k])}return true}
 while(!await cores())await new Promise(r=>setTimeout(r,2e3));
 const R=(id,o=1)=>({id,type:'raster',source:id,layout:{visibility:'none'},paint:{'raster-opacity':o,'raster-fade-duration':0}});
@@ -112,7 +112,9 @@ q.onblur=()=>{S.sug=[];mostra()};
 document.body.classList.add('sem');
 $('#recolhe').onclick=()=>document.body.classList.toggle('sem');
 $('#slider').oninput=e=>{S.i=+e.target.value/K();vai()};
-$('#play').onclick=()=>{const b=$('#play');if(S.anim){clearInterval(S.anim);S.anim=null}else S.anim=setInterval(()=>{const s=$('#slider'),k=K(),j=(Math.round(S.i*k)+1)%(+s.max+1);S.i=j/k;s.value=j;vai()},k1());b.setAttribute('aria-pressed',!!S.anim);b.textContent=S.anim?'\u{F03E4}':'\u{F040A}'};
+function toca(on){clearInterval(S.anim);S.anim=on?setInterval(()=>{const s=$('#slider'),k=K(),j=(Math.round(S.i*k)+1)%(+s.max+1);S.i=j/k;s.value=j;vai()},k1()/S.vel):null;const b=$('#play');b.setAttribute('aria-pressed',on);b.textContent=on?'\u{F03E4}':'\u{F040A}'}
+$('#play').onclick=()=>toca(!S.anim);
+const VEL=[.5,1,1.5,2];$('#vel').onclick=e=>{S.vel=VEL[(VEL.indexOf(S.vel)+1)%VEL.length];e.target.textContent=String(S.vel).replace('.',',')+'×';if(S.anim)toca(true)};
 $('#chips').innerHTML=Object.entries(CHIPS).map(([k,n])=>`<button data-k="${k}" aria-pressed="${S.lig.has(k)}">${n}</button>`).join('');
 $('#chips').onclick=e=>{const k=e.target.dataset?.k;if(k&&V)liga(k,!S.lig.has(k))};
 addEventListener('resize',horas);
