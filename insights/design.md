@@ -1,0 +1,32 @@
+# Regras de design
+
+## Referência
+- Windy e Zoom Earth: mapa em tela cheia, controles flutuando por cima, legenda em barra de gradiente, balão da hora sobre o cursor do trilho, leitor de valores sob o mouse.
+- O meteograma do painel segue o meteoblue: faixa por dia, barras de chuva na mesma rampa do mapa e curva de temperatura.
+
+## Cor
+- Toda cor de interface vem da paleta viva da petricor (`/api/cores` → variáveis CSS `--breu`, `--terra`, `--barro`, `--limo`, `--musgo`, `--acento`, `--ocre`, `--ferro`, `--areia`, `--fonte`). Não introduza cor nova; misture as que existem (`mix` em `camadas.js`).
+- A paleta é recarregada a cada minuto (`cores()` + `tinta()`), então nada pode guardar cor fixa em CSS ou em canvas sem repintar.
+- Exceção: as legendas de radar e satélite (`LEG.radar`, `LEG.ir`) usam as cores reais dos ladrilhos de terceiros, amostradas dos PNG. Se trocar o esquema de cor no `obs.rs`, reamostre (ler o PNG e contar as cores) e atualize as paradas.
+- Nível de alerta INMET: a cor do INMET só decide o nível (0 amarelo, 1 laranja, 2 vermelho); a cor desenhada é `ocre` (0) ou `ferro` (1 e 2).
+
+## Forma
+- Tudo é pill ou caixa de canto arredondado: chips com `border-radius:999px`, painéis com 22px, balões com 8 a 10px.
+- Nunca use faixa lateral colorida (barra de acento) para marcar item selecionado: o selecionado muda o fundo inteiro (`aria-pressed=true` → fundo `--acento`, texto `--breu`).
+- Profundidade por tom (`--terra` sobre o mapa, `--barro` nos botões), sem sombra pesada nem transparência em superfície.
+- Fontes: `var(--texto)` para rótulos, `var(--mono)` para números e horas. Ícones são glifos Nerd Font `nf-md` (plano 15, `\u{F....}`); os de outros planos somem.
+- Cursor do mapa é a seta normal: nada de mãozinha de agarrar (`.maplibregl-canvas-container` com `cursor:default`).
+
+## Disposição
+- Desktop: chips no topo à esquerda, botão `#recolhe` no topo à direita, painel da cidade à direita (`--pw`), legendas empilhadas sob o botão, linha do tempo no rodapé.
+- Celular (≤900px): painel vira gaveta inferior (`--ph`, 62dvh), chips numa fileira com rolagem horizontal, legenda compacta, trilho e polegar maiores para o dedo.
+- O painel da cidade sempre abre recolhido (`body.sem`); recolhido, some inteiro, sem deixar resto.
+- Uma legenda por camada ligada, empilhadas em `#legenda` (`.item+.item`), na ordem em que foram ligadas.
+- Pills que seguem o mouse (`#mira` com valores, `#aviso` com o alerta) ficam a 14px do cursor e têm `pointer-events:none`.
+
+## Texto
+- Português, curto, frase literal. Legenda explica em uma frase o que a cor quer dizer para quem não é meteorologista ("cinza é nuvem comum, colorido é nuvem alta que pode chover").
+- Números em `pt-BR` (`num()`), vírgula decimal, hora como `ter 15h30`.
+
+## Forma do código
+- JS e CSS sem recuo e sem linha em branco; uma função por linha quando cabe. Comentário de uma linha acima do que não é óbvio, dizendo o porquê.
