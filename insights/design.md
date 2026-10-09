@@ -19,7 +19,7 @@
 - Botão principal (`#play`), cursor do trilho e balão da hora em `--acento`, com halo `--anel` (acento a 30%) no hover e quando ativo.
 - Os chips de camada ficam juntos numa pill `--terra` só, cada um com glifo; ligado é fundo `--acento` e glifo `--breu`.
 - Entrada: controles surgem com `surge` (fade + 10px) escalonado; o ponto do lugar pulsa. `prefers-reduced-motion` desliga as animações.
-- Fontes: `var(--texto)` para rótulos, `var(--mono)` para números e horas. Ícones são glifos Nerd Font `nf-md` (plano 15, `\u{F....}`); os de outros planos somem.
+- Fontes: `var(--texto)` (Michelangelus, da Microsoft) para rótulos, `var(--mono)` para números e horas. Ícones são glifos Nerd Font `nf-md` (plano 15, `\u{F....}`); os de outros planos somem.
 - Cursor do mapa é a seta normal: nada de mãozinha de agarrar (`.maplibregl-canvas-container` com `cursor:default`).
 
 ## Disposição

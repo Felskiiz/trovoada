@@ -1,4 +1,4 @@
-:root{--gota:cubic-bezier(.2,1,.2,1);--petricor:cubic-bezier(.05,.9,.1,1);--mare:cubic-bezier(.65,0,.35,1);--respiro:cubic-bezier(.34,1.4,.64,1);--texto:"LXGW WenKai Screen",system-ui,sans-serif;--mono:"LXGWWenKaiMono Nerd Font",ui-monospace,monospace;--destaque:"Ma Shan Zheng",var(--texto);--sombra:0 6px 22px rgb(0 0 0/.38);--anel:color-mix(in srgb,var(--acento) 30%,transparent)}
+:root{--gota:cubic-bezier(.2,1,.2,1);--petricor:cubic-bezier(.05,.9,.1,1);--mare:cubic-bezier(.65,0,.35,1);--respiro:cubic-bezier(.34,1.4,.64,1);--texto:"Michelangelus","LXGW WenKai Screen",system-ui,sans-serif;--mono:"LXGWWenKaiMono Nerd Font",ui-monospace,monospace;--destaque:"Ma Shan Zheng",var(--texto);--sombra:0 6px 22px rgb(0 0 0/.38);--anel:color-mix(in srgb,var(--acento) 30%,transparent)}
 @keyframes surge{from{opacity:0;translate:0 10px}}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}

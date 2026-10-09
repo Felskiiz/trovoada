@@ -19,3 +19,5 @@
 - O site é estático em `web/` e o servidor o lê do disco: editar HTML, JS ou CSS não pede reinício, só recarregar a página. Mudança em `src/` pede `cargo build --release` e reinício.
 - Caminho absoluto (`/api/...`, `/dados/...`) no `web/` quebra o site público: o GitHub Pages serve em `/trovoada/`. Use sempre caminho relativo.
 - O GitHub Actions não tem `~/.config/quickshell/petricor/cores.json`: o site público usa a paleta reserva de `cores_v` em `src/main.rs`. Ela precisa ter toda chave que o `web/` lê (`C.*`, `P.*`, `var(--*)`); faltou `fonte` e o mapa ficou preto.
+
+A Michelangelus (`--texto`) tem EULA da Microsoft sem direito de distribuição: os `.ttf` não entram no repositório nem no Pages. O CSS só a chama pelo nome; quem a tem instalada (em `~/.local/share/fonts/michelangelus/`) vê ela, o resto cai na LXGW WenKai Screen ou em `system-ui`.
