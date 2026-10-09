@@ -263,7 +263,7 @@ fn ler_json(p: PathBuf) -> Option<Value> {
 /// Paleta viva da petricor; sem ela, a paleta fixa.
 fn cores_v(a: &App) -> Value {
     ler_json(a.casa.join(".config/quickshell/petricor/cores.json")).unwrap_or_else(|| {
-        json!({"breu":"#131110","terra":"#1B1817","barro":"#241F1D","limo":"#302A27","areia":"#EFE9E4","acento":"#74D0E4","acento_forte":"#74D0E4","musgo":"#97C489","ocre":"#DFA765","ferro":"#E08C7E"})
+        json!({"breu":"#131110","terra":"#1B1817","barro":"#241F1D","limo":"#302A27","areia":"#EFE9E4","fonte":"#EFE9E4","acento":"#74D0E4","acento_forte":"#74D0E4","musgo":"#97C489","ocre":"#DFA765","ferro":"#E08C7E"})
     })
 }
 
