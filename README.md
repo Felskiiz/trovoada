@@ -12,6 +12,12 @@ Depois abra http://127.0.0.1:8077. O `~/.cargo/bin` não está no PATH.
 
 Ao subir, o servidor baixa o GFS e o ECMWF em GRIB, o que leva cerca de 35 s. A primeira grade completa do Open-Meteo leva cerca de 10 min por causa do limite de taxa da API; depois disso fica em cache por 8 h em `~/.cache/trovoada/openmeteo.json`. Enquanto a grade não chega, o consenso usa só os modelos que já carregaram.
 
+## Site público
+
+O GitHub Actions (`.github/workflows/site.yml`) roda a cada 15 min `trovoada --exportar saida`: uma rodada de cada fonte, gravada como arquivos com os nomes das rotas da API (`saida/api/...`), e publica `web/` + `api/` no GitHub Pages. A grade do Open-Meteo passa de uma rodada para a outra pelo cache do Actions. O repositório precisa ser público: minutos ilimitados e Pages no plano grátis.
+
+O navegador busca direto o radar (RainViewer), os tiles do satélite (GIBS) e o meteograma do ponto (Open-Meteo); os três liberam CORS. No site público os raios e os alertas têm o atraso da última rodada, e a paleta é a fixa.
+
 ## Consenso
 
 Grade de 0,5° (lat 14 a −58, lon −110 a 0: a América do Sul inteira e o Atlântico até a África, de onde chegam as frentes; fora da malha de 1° do Open-Meteo votam só ECMWF e GFS), quadros a cada 3 h de −72 h a +72 h, com o agora no meio da linha do tempo; o passado vem das rodadas anteriores de cada modelo. Votam cinco modelos:
@@ -31,7 +37,7 @@ Cada célula chove quando a maioria ponderada passa de 0,2 mm/h. Temperatura e v
 
 ## API
 
-`/api/tempos`, `/api/campo`, `/api/ponto`, `/api/radar`, `/api/satelite`, `/api/alertas`, `/api/raios`, `/api/cores`, `/api/lugar` e `/tile/{camada}/{t}/{z}/{x}/{y}`.
+`/api/tempos.json`, `/api/campo/{t}.json`, `/api/satelite.json`, `/api/alertas.json`, `/api/raios.json`, `/api/cores.json` e `/api/lugar.json`. Os nomes terminam em `.json` para o mesmo `web/` funcionar no servidor local e como arquivos estáticos; os caminhos no `app.js` são relativos (o Pages serve em `/trovoada/`).
 
 ## Testes
 

@@ -1,0 +1,46 @@
+# Gera a API como arquivos e publica web/ + api/ no GitHub Pages.
+name: site
+on:
+ schedule:
+ # o GitHub atrasa ou pula disparos em hora cheia; raios e alertas ficam com até ~20 min
+ - cron: '7,22,37,52 * * * *'
+ workflow_dispatch:
+ push:
+  branches: [main]
+permissions:
+ contents: read
+ pages: write
+ id-token: write
+concurrency:
+ group: pages
+ cancel-in-progress: false
+jobs:
+ site:
+  runs-on: ubuntu-latest
+  timeout-minutes: 45
+  environment:
+   name: github-pages
+   url: ${{ steps.deploy.outputs.page_url }}
+  env:
+   XDG_CACHE_HOME: ${{ github.workspace }}/cache
+  steps:
+  - uses: actions/checkout@v4
+  - uses: Swatinem/rust-cache@v2
+  # grade do Open-Meteo vale 8 h e leva ~10 min para baixar: vem da rodada anterior
+  - uses: actions/cache/restore@v4
+    with:
+     path: cache/trovoada/openmeteo.json
+     key: openmeteo-
+     restore-keys: openmeteo-
+  - run: cargo build --release
+  - run: cp -r web saida && target/release/trovoada --exportar saida
+  - if: hashFiles('cache/trovoada/openmeteo.json') != ''
+    uses: actions/cache/save@v4
+    with:
+     path: cache/trovoada/openmeteo.json
+     key: openmeteo-${{ hashFiles('cache/trovoada/openmeteo.json') }}
+  - uses: actions/upload-pages-artifact@v3
+    with:
+     path: saida
+  - id: deploy
+    uses: actions/deploy-pages@v4

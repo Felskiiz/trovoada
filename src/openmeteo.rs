@@ -1,12 +1,11 @@
-//! ICON, UKMO e CMA pelo Open-Meteo, mais o detalhe de um ponto.
+//! ICON, UKMO e CMA pelo Open-Meteo.
 use crate::modelo::{Campos, LAT0, LON0, NX, NY, PASSADO, PASSO, Previsao, QUADRO};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
-use std::sync::{Mutex, OnceLock};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const URL: &str = "https://api.open-meteo.com/v1/forecast";
 /// (fonte, modelo na API)
@@ -328,7 +327,10 @@ pub async fn grades(http: &Client, cache: &Path) -> Result<Vec<Previsao>, String
         .filter(|c| agora() - c.t < VALIDADE)
         // Cache de antes do past_days começa depois de agora-PASSADO: refaz.
         .filter(|c| {
-            let t0 = c.resp.first().and_then(|r| r.hourly.get("time")?.first().copied()?);
+            let t0 = c
+                .resp
+                .first()
+                .and_then(|r| r.hourly.get("time")?.first().copied()?);
             t0.is_some_and(|t| t <= (agora() - PASSADO) as f64)
         });
     let c = match velho {
@@ -352,76 +354,6 @@ pub async fn grades(http: &Client, cache: &Path) -> Result<Vec<Previsao>, String
         }
     };
     Ok(monta(&c))
-}
-
-const PONTO_MODELOS: [(&str, &str); 5] = [
-    ("ecmwf", "ecmwf_ifs025"),
-    ("gfs", "gfs_global"),
-    ("icon", "icon_global"),
-    ("ukmo", "ukmo_global_deterministic_10km"),
-    ("cma", "cma_grapes_global"),
-];
-/// (saída, variável da API)
-const PONTO_VARS: [(&str, &str); 7] = [
-    ("chuva", "precipitation"),
-    ("t2m", "temperature_2m"),
-    ("vento", "wind_speed_10m"),
-    ("dir", "wind_direction_10m"),
-    ("rajada", "wind_gusts_10m"),
-    ("cape", "cape"),
-    ("codigo", "weather_code"),
-];
-
-type CachePonto = Mutex<HashMap<(i32, i32), (Instant, Value)>>;
-
-pub async fn ponto(http: &Client, lat: f32, lon: f32) -> Result<Value, String> {
-    static C: OnceLock<CachePonto> = OnceLock::new();
-    let c = C.get_or_init(Default::default);
-    let chave = ((lat * 10.0).round() as i32, (lon * 10.0).round() as i32);
-    if let Some((t, v)) = c.lock().unwrap().get(&chave)
-        && t.elapsed() < Duration::from_secs(1800)
-    {
-        return Ok(v.clone());
-    }
-    let vars = PONTO_VARS.map(|v| v.1).join(",");
-    let q = [
-        ("latitude", lat.to_string()),
-        ("longitude", lon.to_string()),
-        ("models", PONTO_MODELOS.map(|m| m.1).join(",")),
-        ("hourly", vars),
-        ("forecast_days", "3".into()),
-        ("timeformat", "unixtime".into()),
-        ("timezone", "GMT".into()),
-    ];
-    let r = pedir(http, &q)
-        .await?
-        .into_iter()
-        .next()
-        .ok_or("sem dados")?;
-    let horas: Vec<Value> = r
-        .hourly
-        .get("time")
-        .into_iter()
-        .flatten()
-        .map(|x| json!(x.map(|x| x as i64)))
-        .collect();
-    let mut modelos = serde_json::Map::new();
-    for (nome, m) in PONTO_MODELOS {
-        let mut o = serde_json::Map::new();
-        for (saida, v) in PONTO_VARS {
-            let a = r.hourly.get(&format!("{v}_{m}"));
-            o.insert(
-                saida.into(),
-                a.map_or_else(|| json!(vec![Value::Null; horas.len()]), |a| json!(a)),
-            );
-        }
-        modelos.insert(nome.into(), o.into());
-    }
-    let v = json!({"lat": lat, "lon": lon, "horas": horas, "modelos": modelos});
-    let mut m = c.lock().unwrap();
-    m.retain(|_, (t, _)| t.elapsed() < Duration::from_secs(1800));
-    m.insert(chave, (Instant::now(), v.clone()));
-    Ok(v)
 }
 
 #[cfg(test)]
@@ -486,18 +418,6 @@ mod testes {
             resp,
         };
         laranjeiras(&monta(&c));
-        let v = ponto(&http, -25.34, -52.37).await.unwrap();
-        for (m, o) in v["modelos"].as_object().unwrap() {
-            println!(
-                "{m}: {}",
-                serde_json::to_string(o)
-                    .unwrap()
-                    .chars()
-                    .take(330)
-                    .collect::<String>()
-            );
-        }
-        assert_eq!(v["modelos"].as_object().unwrap().len(), 5);
     }
 
     /// Gasta a cota cheia: rodar uma vez só. Grava ~/.cache/trovoada/openmeteo.json.

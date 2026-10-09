@@ -5,7 +5,7 @@
 - O meteograma do painel segue o meteoblue: faixa por dia, barras de chuva na mesma rampa do mapa e curva de temperatura.
 
 ## Cor
-- Toda cor de interface vem da paleta viva da petricor (`/api/cores` → variáveis CSS `--breu`, `--terra`, `--barro`, `--limo`, `--musgo`, `--acento`, `--ocre`, `--ferro`, `--areia`, `--fonte`). Não introduza cor nova; misture as que existem (`mix` em `camadas.js`).
+- Toda cor de interface vem da paleta viva da petricor (`api/cores.json` → variáveis CSS `--breu`, `--terra`, `--barro`, `--limo`, `--musgo`, `--acento`, `--ocre`, `--ferro`, `--areia`, `--fonte`). Não introduza cor nova; misture as que existem (`mix` em `camadas.js`).
 - A paleta é recarregada a cada minuto (`cores()` + `tinta()`), então nada pode guardar cor fixa em CSS ou em canvas sem repintar.
 - Terra e oceano separados por mistura (`hx` em `app.js`): países `limo→fonte` 22%, Brasil 40%, oceano `--breu`.
 - Temperatura (capitais e número grande do painel) usa a cor da faixa (`tcor`): <14 areia, <22 musgo, <28 acento, <33 ocre, acima ferro.

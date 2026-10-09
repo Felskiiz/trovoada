@@ -17,3 +17,4 @@
 - `~/.cargo/bin/cargo test --release` para o servidor (os testes de rede ficam em `-- --ignored`).
 - Visual: abra o site e olhe a coisa fazendo a coisa. Sem navegador, o Firefox headless tira print: `firefox --headless --screenshot saida.png --window-size 1200,800 http://127.0.0.1:8077/`. Ladrilhos de radar e satélite podem não terminar de carregar no print; buraco retangular no satélite costuma ser só isso (confira o tile com `curl` → 200).
 - O site é estático em `web/` e o servidor o lê do disco: editar HTML, JS ou CSS não pede reinício, só recarregar a página. Mudança em `src/` pede `cargo build --release` e reinício.
+- Caminho absoluto (`/api/...`, `/dados/...`) no `web/` quebra o site público: o GitHub Pages serve em `/trovoada/`. Use sempre caminho relativo.
