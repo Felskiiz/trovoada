@@ -1,3 +1,4 @@
+@font-face{font-family:"LXGWWenKaiMono Nerd Font";src:local("LXGWWenKaiMono Nerd Font"),local("LXGWWenKaiMonoNF-Regular"),url(fontes/mono.woff2) format("woff2");font-display:swap}
 :root{--gota:cubic-bezier(.2,1,.2,1);--petricor:cubic-bezier(.05,.9,.1,1);--mare:cubic-bezier(.65,0,.35,1);--respiro:cubic-bezier(.34,1.4,.64,1);--texto:"Michelangelus","LXGW WenKai Screen",system-ui,sans-serif;--mono:"LXGWWenKaiMono Nerd Font",ui-monospace,monospace;--destaque:"Ma Shan Zheng",var(--texto);--sombra:0 6px 22px rgb(0 0 0/.38);--anel:color-mix(in srgb,var(--acento) 30%,transparent)}
 @keyframes surge{from{opacity:0;translate:0 10px}}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -9,14 +10,14 @@ body.sem{--pw:0px}
 #mapa{position:absolute;inset:0}
 #vento,#placas{position:absolute;left:0;top:0;pointer-events:none}
 .g{font-family:var(--mono)}
-#chips{position:absolute;top:14px;left:14px;max-width:calc(100% - var(--pw) - 74px);display:flex;flex-wrap:wrap;gap:2px;z-index:2;background:var(--terra);border-radius:20px;padding:4px;box-shadow:var(--sombra);animation:surge .6s var(--petricor) both}
+#chips{position:absolute;top:calc(14px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));max-width:calc(100% - var(--pw) - 74px);display:flex;flex-wrap:wrap;gap:2px;z-index:2;background:var(--terra);border-radius:20px;padding:4px;box-shadow:var(--sombra);animation:surge .6s var(--petricor) both}
 #chips button{display:flex;align-items:center;gap:6px;font:12px var(--texto);border:0;border-radius:999px;padding:6px 13px 6px 10px;background:none;color:var(--areia);cursor:pointer;transition:background .35s var(--gota),color .35s var(--gota),scale .3s var(--respiro)}
 #chips button .g{width:17px;text-align:center;font-size:15px;color:var(--fonte);transition:color .35s var(--gota)}
 #chips button:active,#play:active,#vel:active,#recolhe:active{scale:.92}
 #chips button[aria-pressed=true] .g{color:var(--breu)}
 #chips button:hover{background:var(--limo)}
 #chips button[aria-pressed=true]{background:var(--acento);color:var(--breu)}
-#recolhe{position:absolute;top:14px;right:calc(var(--pw) + 14px);z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:var(--terra);box-shadow:var(--sombra);animation:surge .6s .08s var(--petricor) both;color:var(--areia);font:17px/1 var(--mono);cursor:pointer;transition:right .5s var(--petricor),background .35s var(--gota),scale .3s var(--respiro)}
+#recolhe{position:absolute;top:calc(14px + env(safe-area-inset-top));right:calc(var(--pw) + 14px);z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:var(--terra);box-shadow:var(--sombra);animation:surge .6s .08s var(--petricor) both;color:var(--areia);font:17px/1 var(--mono);cursor:pointer;transition:right .5s var(--petricor),background .35s var(--gota),scale .3s var(--respiro)}
 #recolhe:hover{background:var(--limo)}
 #tempo{position:absolute;left:14px;right:calc(var(--pw) + 14px);transition:right .5s var(--petricor);bottom:14px;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:12px;background:var(--terra);border-radius:24px;padding:6px 18px 4px 6px;z-index:2;box-shadow:var(--sombra);animation:surge .6s .16s var(--petricor) both}
 #play{width:38px;height:38px;border-radius:50%;border:0;background:var(--acento);color:var(--breu);font:18px/1 var(--mono);cursor:pointer;transition:background .35s var(--gota),box-shadow .35s var(--gota),scale .3s var(--respiro)}
@@ -96,22 +97,22 @@ section{background:var(--barro);border-radius:14px;padding:14px}
 body.sem #painel{translate:calc(100% + 28px) 0}
 #alca{display:none}
 @media (max-width:900px){
-body,body.sem{--pw:0px;--ph:62dvh;--peek:88px}
+body,body.sem{--pw:0px;--ph:62dvh;--peek:calc(88px + env(safe-area-inset-bottom))}
 body.sem{--ph:var(--peek)}
-#chips{top:10px;left:10px;right:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;border-radius:999px}
+#chips{top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;border-radius:999px}
 #chips::-webkit-scrollbar{display:none}
 #chips button{flex:none;padding:7px 13px 7px 10px}
 #recolhe{display:none}
 #alca{display:block;flex:none;position:relative;height:20px;margin:0 -16px;border:0;background:none;cursor:grab;touch-action:none}
 #alca::before{content:"";position:absolute;left:50%;top:7px;translate:-50% 0;width:40px;height:5px;border-radius:3px;background:var(--limo)}
-#legenda{top:62px;right:10px;width:180px;padding:6px 10px 4px;font-size:10px}
+#legenda{top:calc(62px + env(safe-area-inset-top));right:10px;width:180px;padding:6px 10px 4px;font-size:10px}
 #legenda .item+.item{margin-top:6px}
 #legenda .barra{height:6px;margin:4px 0 2px}
 #tempo{left:8px;right:8px;bottom:calc(var(--ph) + 8px);transition:bottom .5s var(--petricor);padding-right:14px}
 #slider::-moz-range-thumb{width:20px;height:20px}
 #slider::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px}
 #slider{height:28px}
-#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:6px 16px 22px;gap:10px}
+#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:6px 16px calc(22px + env(safe-area-inset-bottom));gap:10px}
 body.sem #painel{translate:0 calc(100% - var(--peek));overflow:hidden}
 #agora{gap:0 16px}
 .temp{font-size:64px}

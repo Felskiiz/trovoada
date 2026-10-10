@@ -145,6 +145,8 @@ new ResizeObserver(([e])=>document.documentElement.style.setProperty('--chips',e
 // pill do alerta ao lado do mouse
 function aviso(e){const el=$('#aviso'),fs=e&&S.lig.has('alertas')?map.queryRenderedFeatures(e.point,{layers:['alertas-f']}):[];if(!fs.length){el.hidden=true;return}const vs=new Map(fs.map(f=>[f.properties.evento,f.properties]));el.innerHTML=[...vs.values()].map(p=>`<div class="n${p.nivel}"><span class="g">\u{F0026}</span>${esc(p.evento)}<small>${esc(p.severidade)}</small></div>`).join('');el.style.translate=`${e.point.x+14}px ${e.point.y-14}px`;el.hidden=false}
 map.on('mousemove',e=>{mira=e.lngLat;cursor();aviso(e)});map.on('mouseout',()=>{mira=null;cursor();aviso()});map.on('move',()=>{cursor();placas()});map.on('resize',placas);
+// a placa é canvas: sem a fonte carregada (iPhone, que não a tem instalada) a gota some e o texto cai em Courier
+document.fonts.load('11px "LXGWWenKaiMono Nerd Font"','\u{F0597}').then(placas);
 const zc=()=>$('#mapa').classList.toggle('z5',map.getZoom()>=4.6);map.on('zoom',zc);
 map.on('click',e=>{const{lng,lat}=e.lngLat;lugar(nomeado(lat,lng),false)});
 // limites municipais (IBGE, qualidade mínima, ~650 KB gzip): só baixam no primeiro zoom de estado

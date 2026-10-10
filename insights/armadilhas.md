@@ -10,6 +10,8 @@
 - Glifo Nerd Font desenha mais largo que o avanço da fonte e invade o texto ao lado: dê largura fixa ao `.g` (ex.: `width:17px`).
 - Print do Firefox headless sai no meio da animação de entrada; o perfil de captura usa `ui.prefersReducedMotion=1`.
 - Glifo de ícone fora do plano 15 (`nf-md`) some na fonte do site.
+- Quem não tem a LXGWWenKaiMono Nerd Font instalada (iPhone) só vê glifo e mono pelo recorte `web/fontes/mono.woff2`. Glifo novo no código: rode `ferramentas/glifos.sh`, senão ele some fora do PC do Michel. A placa é canvas e só redesenha com a fonte carregada (`document.fonts.load` em `app.js`).
+- No app iOS a página ocupa a tela toda (`viewport-fit=cover`): o que encosta no topo ou na base soma `env(safe-area-inset-*)`, senão fica sob o relógio ou a barra de início.
 - O site no celular não abre se o servidor escuta em `127.0.0.1`.
 
 - `web/painel/` não está no git: sem `npm run build` o painel da cidade fica vazio. O workflow do Pages faz `npm ci && npx vite build` antes de copiar `web/`.
