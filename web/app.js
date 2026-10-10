@@ -6,7 +6,9 @@ const K=()=>S.modo?1:12,k1=()=>S.modo?1e3:200;
 const mistura=(a,b,r)=>{const L=k=>a[k]&&b[k]?a[k].map((v,j)=>v==null?b[k][j]:b[k][j]==null?v:v+(b[k][j]-v)*r):a[k]||b[k],o={...(r<.5?a:b)};for(const k of['chuva','u','v','am','risco','votos_chuva','fontes','t2m'])o[k]=L(k);return o};
 const $=s=>document.querySelector(s);
 const P={},C={};
-const pega=async u=>{try{const r=await fetch(u);return r.ok?await r.json():null}catch{return null}};
+// no Pages os dados vêm do branch dados: republicar o site a cada 15 min zerava o cache do CDN; cores.json é fixo e fica no Pages
+const API=location.hostname.endsWith('github.io')?'https://raw.githubusercontent.com/Felskiiz/trovoada/dados/':'api/';
+const pega=async u=>{try{const r=await fetch(u.startsWith('api/')&&u!='api/cores.json'?API+u.slice(4):u);return r.ok?await r.json():null}catch{return null}};
 const DIAS=['dom','seg','ter','qua','qui','sex','sáb'];
 const data=t=>new Date(typeof t=='number'?t*1e3:t);
 const dia=t=>{const d=data(t);return DIAS[d.getDay()]+' '+d.getDate()};
@@ -148,8 +150,8 @@ map.on('click',e=>{const{lng,lat}=e.lngLat;lugar(nomeado(lat,lng),false)});
 // limites municipais (IBGE, qualidade mínima, ~650 KB gzip): só baixam no primeiro zoom de estado
 let MUN=0;map.on('zoomend',()=>{if(!MUN&&map.getZoom()>=5.5){MUN=1;map.getSource('munis').setData('dados/municipios-geo.json')}});
 map.on('load',async()=>{map.getCanvasContainer().append(cv,rc);zc();V=vento(map,cv,P);tinta();for(const k of S.lig)for(const l of CAPAS[k])map.setLayoutProperty(l,'visibility','visible');V.liga(S.lig.has('vento'));legenda();
-// nada espera radar, satélite ou alertas: a pintura sai assim que chegam tempos, campo e UFs
-passado();alertas();const mu=pega('dados/municipios.json').then(m=>S.munis=(m||[]).map(x=>[...x,sem(x[0])]));Promise.all([pega('dados/ufs.json'),tempos()]).then(([u])=>{map.getSource('ufs').setData(u||VZ);ufs(u);pede()});
+// esqueleto: países e UFs saem sem esperar a API; a pintura entra quando chegam tempos e campo
+passado();alertas();const mu=pega('dados/municipios.json').then(m=>S.munis=(m||[]).map(x=>[...x,sem(x[0])]));Promise.all([pega('dados/ufs.json').then(u=>{map.getSource('ufs').setData(u||VZ);ufs(u)}),tempos()]).then(pede);
 // lugar padrão já com voo, sem esperar o GPS; a localização do navegador, se vier antes de outra escolha, voa até o município dela
 const pad=pega('api/lugar.json').then(async l=>{await mu;if(l&&!S.lugar)lugar(nomeado(l.lat,l.lon,l.nome),true);return S.lugar});
 const gps=await new Promise(r=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>r(p.coords),()=>r(null),{timeout:1e4,maximumAge:36e5}):r(null));await mu;// ponytail: o GPS daqui cai em Espigão Alto do Iguaçu; é Quedas do Iguaçu
