@@ -116,11 +116,11 @@ body.sem{--ph:var(--peek)}
 #painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:6px 16px calc(22px + env(safe-area-inset-bottom));gap:10px}
 body.sem #painel{translate:0 calc(100% - var(--peek));overflow:hidden}
 #painel{transition:translate .6s var(--gaveta)}
-#lugar,#leg-painel,#rodape{transition:opacity .45s var(--gota) .1s,translate .6s var(--gaveta) .06s}
+#lugar>*,#leg-painel,#rodape{transition:opacity .45s var(--gota) .1s,translate .6s var(--gaveta) .06s}
 #leg-painel{transition-delay:.16s,.12s}
 #rodape{transition-delay:.22s,.18s}
-body.sem :is(#lugar,#leg-painel,#rodape){opacity:0;translate:0 24px;transition:opacity .15s,translate 0s .3s}
-#painel.arrasta :is(#lugar,#leg-painel,#rodape){opacity:var(--f);translate:0 calc((1 - var(--f))*24px);transition:none}
+body.sem :is(#lugar>*,#leg-painel,#rodape){opacity:0;translate:0 24px;transition:opacity .15s,translate 0s .3s}
+#painel.arrasta :is(#lugar>*,#leg-painel,#rodape){opacity:var(--f);translate:0 calc((1 - var(--f))*24px);transition:none}
 #agora{gap:0 16px}
 .temp{font-size:64px}
 .nome{font-size:18px}
