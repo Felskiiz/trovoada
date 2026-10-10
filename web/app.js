@@ -133,12 +133,20 @@ ul.onmousedown=e=>{const li=e.target.closest('li');if(li){e.preventDefault();esc
 q.onblur=()=>{S.sug=[];mostra()};
 document.body.classList.add('sem');
 $('#recolhe').onclick=()=>document.body.classList.toggle('sem');
-// puxador do painel no celular: o painel segue o dedo (e o conteúdo abaixo da busca aparece junto, por --f) e, ao soltar, fica do lado para onde andou; toque só alterna
-const pn=$('#painel'),al=$('#alca');let y0=null,dy=0;
-al.onpointerdown=e=>{y0=e.clientY;dy=0;al.setPointerCapture(e.pointerId);pn.style.transition='none'};
-al.onpointermove=e=>{if(y0==null)return;dy=e.clientY-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;const t=Math.min(Math.max(b+dy,0),h-pk);pn.style.translate=`0 ${t}px`;pn.classList.add('arrasta');pn.style.setProperty('--f',1-t/(h-pk))};
+// puxador do painel no celular: o painel segue o dedo (e o conteúdo abaixo da busca aparece junto, por --f; a linha do tempo, presa à gaveta, também) e, ao soltar, fica do lado para onde andou; toque só alterna
+const pn=$('#painel'),al=$('#alca'),tp=$('#tempo');let y0=null,dy=0;
+const comeca=y=>{y0=y;dy=0;pn.style.transition=tp.style.transition='none'};
+const segue=y=>{dy=y-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;const t=Math.min(Math.max(b+dy,0),h-pk);pn.style.translate=`0 ${t}px`;tp.style.bottom=`${h-t+8}px`;pn.classList.add('arrasta');pn.style.setProperty('--f',1-t/(h-pk))};
 const vira=v=>{if(document.body.classList.toggle('sem',v))pn.scrollTo({top:0,behavior:MOV()?'auto':'smooth'})};
-al.onpointerup=al.onpointercancel=()=>{if(y0==null)return;y0=null;pn.style.transition=pn.style.translate='';pn.classList.remove('arrasta');vira(Math.abs(dy)<6?undefined:dy>0)};
+const solta=()=>{if(y0==null)return;y0=null;pn.style.transition=pn.style.translate=tp.style.transition=tp.style.bottom='';pn.classList.remove('arrasta');vira(Math.abs(dy)<6?undefined:dy>0)};
+al.onpointerdown=e=>{comeca(e.clientY);al.setPointerCapture(e.pointerId)};
+al.onpointermove=e=>{if(y0!=null)segue(e.clientY)};
+al.onpointerup=al.onpointercancel=solta;
+// fora do puxador: com o conteúdo no topo, puxar para baixo recolhe a gaveta (em vez do vazio do quique); recolhida, puxar a busca para cima abre
+let toque=null;
+pn.addEventListener('touchstart',e=>{toque=e.target.closest('#alca')||!$('#sugestoes').hidden?null:[e.touches[0].clientX,e.touches[0].clientY,pn.scrollTop]},{passive:true});
+pn.addEventListener('touchmove',e=>{if(!toque)return;const[x,y,st]=toque,ddx=e.touches[0].clientX-x,ddy=e.touches[0].clientY-y;if(y0==null){if(Math.abs(ddy)<8||Math.abs(ddy)<Math.abs(ddx)){if(Math.abs(ddx)>8)toque=null;return}const sem=document.body.classList.contains('sem');if(sem?false:ddy<0||st>0||pn.scrollTop>0){toque=null;return}if(document.activeElement==q)q.blur();comeca(y)}e.preventDefault();segue(e.touches[0].clientY)},{passive:false});
+pn.addEventListener('touchend',()=>{toque=null;solta()});pn.addEventListener('touchcancel',()=>{toque=null;solta()});
 al.onclick=e=>{if(!e.detail)vira()};
 $('#dica').onclick=()=>{vira(false);$('#leg-painel').scrollIntoView({block:'nearest',behavior:MOV()?'auto':'smooth'})};
 // pinça fora do mapa não amplia a página (o WKWebView respeita o viewport, o Safari só o gesturestart)

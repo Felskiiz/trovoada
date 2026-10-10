@@ -99,14 +99,14 @@ section{background:var(--barro);border-radius:14px;padding:14px}
 body.sem #painel{translate:calc(100% + 28px) 0}
 #alca{display:none}
 @media (max-width:900px){
-body,body.sem{--pw:0px;--ph:62dvh;--peek:calc(88px + env(safe-area-inset-bottom))}
+body,body.sem{--pw:0px;--ph:62dvh;--peek:calc(66px + max(env(safe-area-inset-bottom) - 12px,10px))}
 body.sem{--ph:var(--peek)}
 #chips{top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;border-radius:999px}
 #chips::-webkit-scrollbar{display:none}
 #chips button{flex:none;padding:7px 13px 7px 10px}
 #recolhe{display:none}
-#alca{display:block;flex:none;position:relative;height:20px;margin:0 -16px;border:0;background:none;cursor:grab;touch-action:none}
-#alca::before{content:"";position:absolute;left:50%;top:7px;translate:-50% 0;width:40px;height:5px;border-radius:3px;background:var(--limo)}
+#alca{display:block;flex:none;position:relative;height:16px;margin:0 -16px;border:0;background:none;cursor:grab;touch-action:none}
+#alca::before{content:"";position:absolute;left:50%;top:5px;translate:-50% 0;width:40px;height:5px;border-radius:3px;background:var(--limo)}
 #legenda{display:none}
 #dica{display:flex;position:absolute;top:calc(62px + env(safe-area-inset-top));right:10px;z-index:2;gap:6px;align-items:center;border:0;background:var(--terra);color:var(--areia);border-radius:999px;padding:6px 12px 6px 10px;font:11px var(--mono);box-shadow:var(--sombra);animation:surge .6s .12s var(--petricor) both}
 #leg-painel{display:block;flex:none;border:1px solid var(--limo);border-radius:16px;padding:10px 14px 8px;font:11px var(--mono)}
@@ -114,7 +114,7 @@ body.sem{--ph:var(--peek)}
 #slider::-moz-range-thumb{width:20px;height:20px}
 #slider::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px}
 #slider{height:28px}
-#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:6px 16px calc(22px + env(safe-area-inset-bottom));gap:10px}
+#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:4px 16px calc(22px + env(safe-area-inset-bottom));gap:8px;overscroll-behavior-y:none}
 body.sem #painel{translate:0 calc(100% - var(--peek));overflow:hidden}
 #painel{transition:translate .6s var(--gaveta)}
 #lugar>*,#leg-painel,#rodape{transition:opacity .45s var(--gota) .1s,translate .6s var(--gaveta) .06s}
