@@ -133,10 +133,10 @@ ul.onmousedown=e=>{const li=e.target.closest('li');if(li){e.preventDefault();esc
 q.onblur=()=>{S.sug=[];mostra()};
 document.body.classList.add('sem');
 $('#recolhe').onclick=()=>document.body.classList.toggle('sem');
-// puxador do painel no celular: o painel segue o dedo (e o conteúdo abaixo da busca aparece junto, por --f; a linha do tempo, presa à gaveta, também) e, ao soltar, fica do lado para onde andou; toque só alterna
+// puxador do painel no celular: o painel segue o dedo (com o conteúdo abaixo da busca já à vista; a linha do tempo, presa à gaveta, também) e, ao soltar, fica do lado para onde andou; toque só alterna
 const pn=$('#painel'),al=$('#alca'),tp=$('#tempo');let y0=null,dy=0;
 const comeca=y=>{y0=y;dy=0;pn.style.transition=tp.style.transition='none'};
-const segue=y=>{dy=y-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;const t=Math.min(Math.max(b+dy,0),h-pk);pn.style.translate=`0 ${t}px`;tp.style.bottom=`${h-t+8}px`;pn.classList.add('arrasta');pn.style.setProperty('--f',1-t/(h-pk))};
+const segue=y=>{dy=y-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;const t=Math.min(Math.max(b+dy,0),h-pk);pn.style.translate=`0 ${t}px`;tp.style.bottom=`${h-t+8}px`;pn.classList.add('arrasta')};
 const vira=v=>{if(document.body.classList.toggle('sem',v))pn.scrollTo({top:0,behavior:MOV()?'auto':'smooth'})};
 const solta=()=>{if(y0==null)return;y0=null;pn.style.transition=pn.style.translate=tp.style.transition=tp.style.bottom='';pn.classList.remove('arrasta');vira(Math.abs(dy)<6?undefined:dy>0)};
 al.onpointerdown=e=>{comeca(e.clientY);al.setPointerCapture(e.pointerId)};

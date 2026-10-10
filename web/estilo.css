@@ -121,7 +121,7 @@ body.sem #painel{translate:0 calc(100% - var(--peek));overflow:hidden}
 #leg-painel{transition-delay:.16s,.12s}
 #rodape{transition-delay:.22s,.18s}
 body.sem :is(#lugar>*,#leg-painel,#rodape){opacity:0;translate:0 24px;transition:opacity .15s,translate 0s .3s}
-#painel.arrasta :is(#lugar>*,#leg-painel,#rodape){opacity:var(--f);translate:0 calc((1 - var(--f))*24px);transition:none}
+#painel.arrasta :is(#lugar>*,#leg-painel,#rodape){opacity:1;translate:0 0;transition:opacity .15s}
 #agora{gap:0 16px}
 .temp{font-size:64px}
 .nome{font-size:18px}
