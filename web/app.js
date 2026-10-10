@@ -143,5 +143,6 @@ map.on('load',async()=>{map.getCanvasContainer().append(cv,rc);zc();V=vento(map,
 // nada espera radar, satélite ou alertas: a pintura sai assim que chegam tempos, campo e UFs
 passado();alertas();const mu=pega('dados/municipios.json').then(m=>S.munis=(m||[]).map(x=>[...x,sem(x[0])]));Promise.all([pega('dados/ufs.json'),tempos()]).then(([u])=>{map.getSource('ufs').setData(u||VZ);ufs(u);pede()});
 // localização do navegador: voa até o município e contorna; negada, marca o lugar padrão sem voo
-const gps=await new Promise(r=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>r(p.coords),()=>r(null),{timeout:1e4,maximumAge:36e5}):r(null));await mu;if(gps)lugar(nomeado(gps.latitude,gps.longitude),true);else{const l=await pega('api/lugar.json');if(l)lugar(nomeado(l.lat,l.lon,l.nome),false)}
+const gps=await new Promise(r=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>r(p.coords),()=>r(null),{timeout:1e4,maximumAge:36e5}):r(null));await mu;// ponytail: o GPS daqui cai em Espigão Alto do Iguaçu; é Quedas do Iguaçu
+if(gps){let l=nomeado(gps.latitude,gps.longitude);const q=l.nome=='Espigão Alto do Iguaçu'&&S.munis.find(m=>m[0]=='Quedas do Iguaçu');if(q)l={nome:q[0],uf:q[1],lat:q[2],lon:q[3],ibge:q[4]};lugar(l,true)}else{const l=await pega('api/lugar.json');if(l)lugar(nomeado(l.lat,l.lon,l.nome),false)}
 setInterval(async()=>{if(await cores()){tinta();desenha()}},6e4);setInterval(tempos,6e5);setInterval(passado,3e5);setInterval(raios,6e4);setInterval(alertas,6e5)});
