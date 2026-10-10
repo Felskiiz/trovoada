@@ -12,7 +12,11 @@
 - Glifo de ícone fora do plano 15 (`nf-md`) some na fonte do site.
 - O site no celular não abre se o servidor escuta em `127.0.0.1`.
 
+- `web/painel/` não está no git: sem `npm run build` o painel da cidade fica vazio. O workflow do Pages faz `npm ci && npx vite build` antes de copiar `web/`.
+- O MapLibre não pode entrar no bundle do Vite: ele acha o worker por `import.meta.url`. Por isso só `painel/main.tsx` é empacotado.
+- O Chromium headless loga um 404 do `favicon.ico`; não é erro do site.
 ## Verificação
+- `npx tsc` para o painel React.
 - `node --check web/app.js` depois de cada edição no JS.
 - `~/.cargo/bin/cargo test --release` para o servidor (os testes de rede ficam em `-- --ignored`).
 - Visual: abra o site e olhe a coisa fazendo a coisa. Sem navegador, o Firefox headless tira print: `firefox --headless --screenshot saida.png --window-size 1200,800 http://127.0.0.1:8077/`. Ladrilhos de radar e satélite podem não terminar de carregar no print; buraco retangular no satélite costuma ser só isso (confira o tile com `curl` → 200).

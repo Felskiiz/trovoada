@@ -33,6 +33,12 @@ jobs:
      key: openmeteo-
      restore-keys: openmeteo-
   - run: cargo build --release
+  # painel React (painel/) vira web/painel/, que fica fora do git
+  - uses: actions/setup-node@v4
+    with:
+     node-version: 22
+     cache: npm
+  - run: npm ci && npx vite build
   - run: cp -r web saida && target/release/trovoada --exportar saida
   - if: hashFiles('cache/trovoada/openmeteo.json') != ''
     uses: actions/cache/save@v4

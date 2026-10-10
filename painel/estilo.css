@@ -1,0 +1,5 @@
+/* tokens do Arc apontados para a paleta da petricor, que o app.js recarrega a cada minuto */
+#lugar{display:contents;--foreground:var(--areia);--text-secondary:color-mix(in srgb,var(--areia) 72%,transparent);--text-muted:color-mix(in srgb,var(--areia) 50%,transparent);--surface:var(--barro);--border:color-mix(in srgb,var(--areia) 10%,transparent);--border-strong:color-mix(in srgb,var(--areia) 28%,transparent);--font-display:var(--destaque);--font-body:var(--texto);--text-3xl:1.9rem;--accent:var(--acento)}
+#horas{display:grid;gap:22px}
+.serie.mm{--accent:var(--musgo)}
+.serie.temp-h{--accent:var(--ocre)}

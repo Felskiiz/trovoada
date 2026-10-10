@@ -7,7 +7,7 @@ body{overflow:hidden;--pw:408px}
 body.sem{--pw:0px}
 #lado{position:fixed;inset:0;overflow:hidden}
 #mapa{position:absolute;inset:0}
-#vento{position:absolute;left:0;top:0;pointer-events:none}
+#vento,#placas{position:absolute;left:0;top:0;pointer-events:none}
 .g{font-family:var(--mono)}
 #chips{position:absolute;top:14px;left:14px;max-width:calc(100% - var(--pw) - 74px);display:flex;flex-wrap:wrap;gap:2px;z-index:2;background:var(--terra);border-radius:20px;padding:4px;box-shadow:var(--sombra);animation:surge .6s var(--petricor) both}
 #chips button{display:flex;align-items:center;gap:6px;font:12px var(--texto);border:0;border-radius:999px;padding:6px 13px 6px 10px;background:none;color:var(--areia);cursor:pointer;transition:background .35s var(--gota),color .35s var(--gota),scale .3s var(--respiro)}
@@ -92,22 +92,6 @@ section{background:var(--barro);border-radius:14px;padding:14px}
 .nome small{font-size:14px}
 .dado{font:12px var(--mono)}
 .seta{display:inline-block;margin-right:4px}
-.r1{color:var(--ocre)}
-.r2,.r3{color:var(--ferro)}
-#horas canvas{display:block;width:100%;height:130px}
-table{width:100%;border-collapse:collapse;font:12px var(--mono)}
-th{text-align:left;font-weight:normal}
-td{text-align:right;white-space:nowrap}
-th,td{padding:5px 0}
-thead td{font-size:10px}
-tbody tr{border-top:1px solid var(--limo)}
-.voto{color:var(--acento)}
-.alerta+.alerta{margin-top:14px;padding-top:14px;border-top:1px solid var(--limo)}
-.alerta h3{font:17px var(--texto);display:flex;gap:8px;align-items:baseline}
-.alerta .g{color:var(--ocre);width:18px;flex:none}
-.n1 .g,.n2 .g{color:var(--ferro)}
-.alerta .dado{margin:2px 0 8px}
-.alerta p{font-size:12px;margin-top:6px}
 #rodape{font:10px var(--mono);display:flex;flex-wrap:wrap;gap:4px 14px;padding:0 2px;margin-top:auto}
 .erro{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ferro);margin-left:4px;vertical-align:middle}
 body.sem #painel{translate:calc(100% + 28px) 0}

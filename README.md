@@ -8,6 +8,12 @@ Radar de tempestades do Brasil, local. Servidor em Rust (axum) e mapa em MapLibr
 cd ~/trovoada && ~/.cargo/bin/cargo run --release
 ```
 
+O painel da cidade é React e precisa de build antes (gera `web/painel/`, fora do git):
+
+```
+npm ci && npm run build   # ou npm run dev para refazer a cada edição
+```
+
 Depois abra http://127.0.0.1:8077. O `~/.cargo/bin` não está no PATH.
 
 Ao subir, o servidor baixa o GFS e o ECMWF em GRIB, o que leva cerca de 35 s. A primeira grade completa do Open-Meteo leva cerca de 10 min por causa do limite de taxa da API; depois disso fica em cache por 8 h em `~/.cache/trovoada/openmeteo.json`. Enquanto a grade não chega, o consenso usa só os modelos que já carregaram.

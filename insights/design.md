@@ -22,6 +22,8 @@
 - Fontes: `var(--texto)` (Michelangelus, da Microsoft) para rótulos, `var(--mono)` para números e horas. Ícones são glifos Nerd Font `nf-md` (plano 15, `\u{F....}`); os de outros planos somem.
 - Cursor do mapa é a seta normal: nada de mãozinha de agarrar (`.maplibregl-canvas-container` com `cursor:default`).
 
+- O painel React usa os componentes Arc (`painel/components/arc/`, instalados pelo MCP `arc`, traduzidos para pt-BR). Os tokens do Arc (`--foreground`, `--surface`, `--accent`...) são remapeados para a paleta em `painel/estilo.css`; a cor de cada gráfico vem de `--accent` no invólucro (`.serie.mm` musgo, chance acento, `.serie.temp-h` ocre).
+- Modo chuva: UF em `limo→acento` pela chance; pills `--terra` com UF em areia, temperatura na cor da faixa e chance em acento. Busca escurece o mundo (`cidade-m`, breu) e contorna o município em acento.
 ## Disposição
 - Desktop: chips no topo à esquerda, botão `#recolhe` no topo à direita, painel da cidade à direita (`--pw`), legendas empilhadas sob o botão, linha do tempo no rodapé.
 - Celular (≤900px): painel vira gaveta inferior (`--ph`, 62dvh), chips numa fileira com rolagem horizontal, legenda compacta, trilho e polegar maiores para o dedo.

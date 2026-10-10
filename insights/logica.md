@@ -17,10 +17,14 @@ A arquitetura (fontes, consenso, API) está no `README.md`. Aqui fica o comporta
 - Radar e satélite são fontes raster; trocar o instante é `setTiles` com a URL nova (`radarEm`, `irEm`), e os PNG vêm direto do RainViewer (`host` + `path` do `weather-maps.json`, buscado pelo navegador em `passado()`) e do GIBS. O instante do satélite na URL é ISO (`2026-10-05T23:30:00Z`); o do radar é Unix.
 - `campo(t)` guarda até 16 quadros em `S.cache` e pré-busca os dois seguintes.
 
+## Modos chuva e precipitação
+- Ao abrir, só `chuva` vem ligado. `chuva` é o modo simples: `ufChuva()` pinta cada UF pela chance média (`chance()` = fontes que votam chuva ÷ fontes) e `placas()` desenha pills `UF temp chance` no canvas `#placas`. O antigo modo de mm/h agora é `precip` (fonte e camada `precip`).
+- Cidade por cidade só quando a UF do centro cobre ≥55% da tela (`cheio` em `placas()`): até 600 municípios por distância ao centro, com colisão gulosa. Painel, chips, legenda, linha do tempo e o marcador entram como obstáculos.
+- `#placas` mede `map.getContainer()`: o `getCanvasContainer()` tem 0 px.
 ## Painel da cidade
-- `lugar()` marca o ponto, preenche `#agora` com o quadro mais próximo de agora (não o do cursor) e pede o ponto direto ao Open-Meteo (`ponto()` no `app.js`) para o meteograma (`horas()`) e a tabela por modelo (`tabela()`).
-- Alertas do lugar: `blocoAlertas()` filtra por ponto dentro do polígono. Passar o mouse num alerta no mapa mostra `#aviso` com nome e severidade; clicar abre o painel no bloco de alertas.
-
+- O painel é React (`painel/`, build do Vite em `web/painel/`); o mapa segue JS sem bundle. `painel()` no `app.js` monta o dado, grava em `window.trovoada.lugar` e dispara `trovoada:lugar`; `painel/lugar.tsx` lê com `useSyncExternalStore`.
+- Dado: temperatura e vento do quadro de agora, mais as 24 h do dia local vindas de `ponto()` (Open-Meteo direto, `past_days=1` para o dia começar à meia-noite local): mm é a mediana dos modelos, chance é a fração de modelos com ≥0,1 mm, temperatura é a mediana.
+- Busca: `lugar(l,true)` baixa a malha do IBGE (`l.ibge`), pinta `cidade-l` (contorno) e `cidade-m` (máscara do mundo com o município de buraco) e faz `fitBounds` descontando o painel. Clique no mapa só marca o ponto, sem zoom nem contorno.
 ## Servidor
 - Escuta em `0.0.0.0:8077` para abrir no celular pela rede local ou Tailscale; o firewalld já libera TCP 1025–65535.
 - Cada família de fontes tem o seu ciclo (`ciclo()` em `main.rs`); em erro mantém o dado anterior e marca o erro no status que o rodapé mostra.

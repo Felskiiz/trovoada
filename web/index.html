@@ -1,12 +1,14 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>trovoada</title>
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
+<link rel="stylesheet" href="painel/painel.css">
 <link rel="stylesheet" href="estilo.css">
 <script type="module" src="app.js"></script>
+<script type="module" src="painel/painel.js"></script>
 </head>
 <body>
 <div id="lado">
@@ -19,10 +21,7 @@
 </div>
 <aside id="painel">
 <div id="busca"><span class="g">&#xF0349;</span><input id="q" type="search" autocomplete="off" spellcheck="false" aria-label="lugar"><ul id="sugestoes" hidden></ul></div>
-<section id="agora" hidden></section>
-<section id="horas" hidden><canvas></canvas></section>
-<section id="fontes" hidden><table></table></section>
-<section id="alertas" hidden></section>
+<div id="lugar"></div>
 <footer id="rodape" hidden></footer>
 </aside>
 </body>
