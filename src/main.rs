@@ -178,7 +178,9 @@ async fn exportar(app: &App, dir: PathBuf) {
         }
     }
     grava("raios.json".into(), js(&json!(app.raios.lista())));
-    grava("cores.json".into(), js(&cores_v()));
+    // o site público leva a paleta tinta; o app do iPhone pede a preto e branco com ?pb
+    grava("cores.json".into(), js(&cores_v(false)));
+    grava("cores-pb.json".into(), js(&cores_v(true)));
     grava("lugar.json".into(), js(&lugar_v()));
 }
 
@@ -254,13 +256,16 @@ async fn raios_(State(a): St) -> Json<Vec<[f32; 3]>> {
     Json(a.raios.lista())
 }
 
-/// Paleta preto e branco do projeto.
-fn cores_v() -> Value {
+/// Paleta preto e branco (local e app do iPhone) ou tinta, a quente da petricor (site público).
+fn cores_v(pb: bool) -> Value {
+    if !pb {
+        return json!({"breu":"#131110","terra":"#1B1817","barro":"#241F1D","limo":"#302A27","areia":"#EFE9E4","fonte":"#EFE9E4","acento":"#74D0E4","acento_forte":"#74D0E4","musgo":"#97C489","ocre":"#DFA765","ferro":"#E08C7E"});
+    }
     json!({"breu":"#0A0A0A","terra":"#121212","barro":"#1B1B1B","limo":"#2C2C2C","areia":"#DCDCDC","fonte":"#FFFFFF","acento":"#FFFFFF","acento_forte":"#F5F5F5","musgo":"#B4B4B4","ocre":"#8C8C8C","ferro":"#FFFFFF"})
 }
 
 async fn cores() -> Json<Value> {
-    Json(cores_v())
+    Json(cores_v(true))
 }
 
 fn lugar_v() -> Value {

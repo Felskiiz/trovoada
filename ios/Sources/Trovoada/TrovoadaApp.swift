@@ -14,7 +14,7 @@ struct TrovoadaApp: App {
     }
 }
 
-// O site público; o servidor Rust não roda no iPhone.
+// O site público com a paleta preto e branco (?pb); o servidor Rust não roda no iPhone.
 struct Radar: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         context.coordinator.gps.requestWhenInUseAuthorization()
@@ -24,7 +24,7 @@ struct Radar: UIViewRepresentable {
         web.scrollView.contentInsetAdjustmentBehavior = .never
         web.scrollView.bounces = false
         web.uiDelegate = context.coordinator
-        web.load(URLRequest(url: URL(string: "https://felskiiz.github.io/trovoada/")!))
+        web.load(URLRequest(url: URL(string: "https://felskiiz.github.io/trovoada/?pb")!))
         return web
     }
 

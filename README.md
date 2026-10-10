@@ -1,6 +1,6 @@
 # trovoada
 
-Radar de tempestades do Brasil, local. Servidor em Rust (axum) e mapa em MapLibre, sem tiles de terceiros: o mapa-base é GeoJSON em `web/dados`. As cores são uma paleta fixa em preto e branco, em `cores_v` no `src/main.rs`.
+Radar de tempestades do Brasil, local. Servidor em Rust (axum) e mapa em MapLibre, sem tiles de terceiros: o mapa-base é GeoJSON em `web/dados`. As cores vêm de `cores_v` no `src/main.rs`: preto e branco no local e no app do iPhone (`?pb`), a paleta tinta no site público.
 
 ## Rodar
 

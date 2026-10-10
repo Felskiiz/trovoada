@@ -6,9 +6,9 @@ const K=()=>S.modo?1:12,k1=()=>S.modo?1e3:200;
 const mistura=(a,b,r)=>{const L=k=>a[k]&&b[k]?a[k].map((v,j)=>v==null?b[k][j]:b[k][j]==null?v:v+(b[k][j]-v)*r):a[k]||b[k],o={...(r<.5?a:b)};for(const k of['chuva','u','v','am','risco','votos_chuva','fontes','t2m'])o[k]=L(k);return o};
 const $=s=>document.querySelector(s);
 const P={},C={};
-// no Pages os dados vêm do branch dados: republicar o site a cada 15 min zerava o cache do CDN; cores.json é fixo e fica no Pages
+// no Pages os dados vêm do branch dados: republicar o site a cada 15 min zerava o cache do CDN; cores.json e cores-pb.json são fixos e ficam no Pages
 const API=location.hostname.endsWith('github.io')?'https://raw.githubusercontent.com/Felskiiz/trovoada/dados/':'api/';
-const pega=async u=>{try{const r=await fetch(u.startsWith('api/')&&u!='api/cores.json'?API+u.slice(4):u);return r.ok?await r.json():null}catch{return null}};
+const pega=async u=>{try{const r=await fetch(u.startsWith('api/')&&!u.startsWith('api/cores')?API+u.slice(4):u);return r.ok?await r.json():null}catch{return null}};
 const DIAS=['dom','seg','ter','qua','qui','sex','sáb'];
 const data=t=>new Date(typeof t=='number'?t*1e3:t);
 const dia=t=>{const d=data(t);return DIAS[d.getDay()]+' '+d.getDate()};
@@ -24,7 +24,9 @@ const VZ={type:'FeatureCollection',features:[]};
 const MOV=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const VAZIO=Object.assign(document.createElement('canvas'),{width:1,height:1}).toDataURL();
 const S={vel:1,tempos:[],radar:[],ir:[],obs:[],i:0,modo:null,campo:null,agora:null,lugar:null,ponto:null,alertas:null,fontes:null,lig:new Set(['chuva']),munis:[],sug:[],sel:0,cache:new Map(),anim:null};
-async function cores(){const c=await pega('api/cores.json');if(!c)return false;Object.assign(P,c);for(const k in P){if(!/^#[0-9a-f]{6}$/i.test(P[k]))continue;C[k]=rgb(P[k]);document.documentElement.style.setProperty('--'+k.replace('_','-'),P[k])}return true}
+// ?pb (app do iPhone) troca a paleta tinta do site público pela preto e branco do local
+const PALETA=new URLSearchParams(location.search).has('pb')?'api/cores-pb.json':'api/cores.json';
+async function cores(){const c=await pega(PALETA);if(!c)return false;$('meta[name=theme-color]').content=c.breu;Object.assign(P,c);for(const k in P){if(!/^#[0-9a-f]{6}$/i.test(P[k]))continue;C[k]=rgb(P[k]);document.documentElement.style.setProperty('--'+k.replace('_','-'),P[k])}return true}
 while(!await cores())await new Promise(r=>setTimeout(r,2e3));
 const R=(id,o=1)=>({id,type:'raster',source:id,layout:{visibility:'none'},paint:{'raster-opacity':o,'raster-fade-duration':0}});
 const im=()=>({type:'image',url:VAZIO,coordinates:cantos()}),gj=()=>({type:'geojson',data:VZ});

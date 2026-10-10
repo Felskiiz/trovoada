@@ -5,8 +5,8 @@
 - O meteograma do painel segue o meteoblue: faixa por dia, barras de chuva na mesma rampa do mapa e curva de temperatura.
 
 ## Cor
-- Toda cor de interface vem da paleta preto e branco de `cores_v` em `src/main.rs` (`api/cores.json` → variáveis CSS `--breu`, `--terra`, `--barro`, `--limo`, `--musgo`, `--acento`, `--ocre`, `--ferro`, `--areia`, `--fonte`). Não introduza cor nova; misture as que existem (`mix` em `camadas.js`).
-- A paleta é recarregada a cada minuto (`cores()` + `tinta()`), então nada pode guardar cor fixa em CSS ou em canvas sem repintar. Antes ela vinha viva da petricor; desde 10/10/2026 é fixa em preto e branco, igual no local e no site público.
+- Toda cor de interface vem de `cores_v` em `src/main.rs` (`api/cores.json` → variáveis CSS `--breu`, `--terra`, `--barro`, `--limo`, `--musgo`, `--acento`, `--ocre`, `--ferro`, `--areia`, `--fonte`). Não introduza cor nova; misture as que existem (`mix` em `camadas.js`).
+- A paleta é recarregada a cada minuto (`cores()` + `tinta()`), então nada pode guardar cor fixa em CSS ou em canvas sem repintar. Duas paletas fixas: a preto e branco no servidor local e no app do iPhone (que abre o site com `?pb` e lê `api/cores-pb.json`), e a tinta, quente da petricor, no site público (`api/cores.json` do export). As duas precisam das mesmas chaves.
 - O painel da cidade tem a altura do conteúdo (sem `bottom`), com `max-height` da janela e rolagem sem barra.
 - Terra e oceano separados por mistura (`hx` em `app.js`): países `limo→fonte` 22%, Brasil 40%, oceano `--breu`.
 - Temperatura (capitais e número grande do painel) usa a cor da faixa (`tcor`): <14 areia, <22 musgo, <28 acento, <33 ocre, acima ferro.
