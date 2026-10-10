@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>trovoada</title>
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="icones/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icones/icone-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0A0A0A">
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
 <link rel="stylesheet" href="painel/painel.css">
 <link rel="stylesheet" href="estilo.css">
@@ -20,6 +25,7 @@
 <div id="tempo" hidden><button id="play" aria-pressed="false">&#xF040A;</button><button id="vel">1×</button><div id="trilho"><output id="instante"></output><input id="slider" type="range" min="0" max="0" value="0"><div id="dias"></div></div></div>
 </div>
 <aside id="painel">
+<button id="alca" aria-label="painel"></button>
 <div id="busca"><span class="g">&#xF0349;</span><input id="q" type="search" autocomplete="off" spellcheck="false" aria-label="lugar"><ul id="sugestoes" hidden></ul></div>
 <div id="lugar"></div>
 <footer id="rodape" hidden></footer>

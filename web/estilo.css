@@ -72,9 +72,8 @@ body.sem{--pw:0px}
 #legenda b{font-weight:normal;margin-left:6px}
 .lugar{width:14px;height:14px;border-radius:50%;border:3px solid var(--breu);background:var(--acento);box-shadow:0 0 0 0 var(--anel);animation:pulso 2.4s ease-out infinite}
 @keyframes pulso{70%{box-shadow:0 0 0 14px transparent}100%{box-shadow:0 0 0 0 transparent}}
-#painel{position:fixed;top:14px;right:14px;bottom:14px;width:380px;z-index:3;border-radius:22px;transition:translate .5s var(--petricor);background:var(--terra);box-shadow:var(--sombra);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--limo) transparent;padding:22px;display:flex;flex-direction:column;gap:14px}
-#painel::-webkit-scrollbar{width:6px}
-#painel::-webkit-scrollbar-thumb{background:var(--limo);border-radius:3px}
+#painel{position:fixed;top:14px;right:14px;max-height:calc(100dvh - 28px);width:380px;z-index:3;border-radius:22px;transition:translate .5s var(--petricor);background:var(--terra);box-shadow:var(--sombra);overflow-y:auto;scrollbar-width:none;padding:22px;display:flex;flex-direction:column;gap:14px}
+#painel::-webkit-scrollbar{display:none}
 #busca{position:relative}
 #busca .g{position:absolute;left:13px;top:50%;translate:0 -50%;font-size:17px;pointer-events:none}
 #q{appearance:none;width:100%;font:14px var(--texto);background:var(--barro);color:var(--areia);border:0;border-radius:14px;padding:10px 14px 10px 38px;outline:none;transition:background .3s var(--gota)}
@@ -95,13 +94,16 @@ section{background:var(--barro);border-radius:14px;padding:14px}
 #rodape{font:10px var(--mono);display:flex;flex-wrap:wrap;gap:4px 14px;padding:0 2px;margin-top:auto}
 .erro{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ferro);margin-left:4px;vertical-align:middle}
 body.sem #painel{translate:calc(100% + 28px) 0}
+#alca{display:none}
 @media (max-width:900px){
-body,body.sem{--pw:0px;--ph:62dvh}
-body.sem{--ph:0px}
-#chips{top:10px;left:10px;right:58px;max-width:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;border-radius:999px}
+body,body.sem{--pw:0px;--ph:62dvh;--peek:88px}
+body.sem{--ph:var(--peek)}
+#chips{top:10px;left:10px;right:10px;max-width:none;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;border-radius:999px}
 #chips::-webkit-scrollbar{display:none}
 #chips button{flex:none;padding:7px 13px 7px 10px}
-#recolhe{top:10px;right:10px;width:42px;height:42px;rotate:90deg}
+#recolhe{display:none}
+#alca{display:block;flex:none;position:relative;height:20px;margin:0 -16px;border:0;background:none;cursor:grab;touch-action:none}
+#alca::before{content:"";position:absolute;left:50%;top:7px;translate:-50% 0;width:40px;height:5px;border-radius:3px;background:var(--limo)}
 #legenda{top:62px;right:10px;width:180px;padding:6px 10px 4px;font-size:10px}
 #legenda .item+.item{margin-top:6px}
 #legenda .barra{height:6px;margin:4px 0 2px}
@@ -109,8 +111,8 @@ body.sem{--ph:0px}
 #slider::-moz-range-thumb{width:20px;height:20px}
 #slider::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px}
 #slider{height:28px}
-#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:16px 16px 22px;gap:10px}
-body.sem #painel{translate:0 calc(100% + 10px)}
+#painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:6px 16px 22px;gap:10px}
+body.sem #painel{translate:0 calc(100% - var(--peek));overflow:hidden}
 #agora{gap:0 16px}
 .temp{font-size:64px}
 .nome{font-size:18px}

@@ -115,7 +115,7 @@ async function ponto(lat,lon){const h=(await pega(`https://api.open-meteo.com/v1
 // malha do município no IBGE (libera CORS): contorno e máscara do resto do mapa
 async function contorno(l){const fc=l.ibge?await pega(`https://servicodados.ibge.gov.br/api/v3/malhas/municipios/${l.ibge}?formato=application/vnd.geo+json&qualidade=intermediaria`):null,g=fc?.features?.[0]?.geometry;if(S.lugar!==l)return null;if(!g||!/Polygon/.test(g.type))return null;const ps=g.type=='Polygon'?[g.coordinates]:g.coordinates,b=[180,90,-180,-90];for(const p of ps)for(const[x,y]of p[0]){b[0]=Math.min(b[0],x);b[1]=Math.min(b[1],y);b[2]=Math.max(b[2],x);b[3]=Math.max(b[3],y)}map.getSource('cidade').setData({type:'FeatureCollection',features:[{type:'Feature',properties:{},geometry:g},{type:'Feature',properties:{m:1},geometry:{type:'Polygon',coordinates:[[[-180,-85],[180,-85],[180,85],[-180,85],[-180,-85]],...ps.map(p=>p[0])]}}]});map.setPaintProperty('cidade-l','line-opacity',.95);return b}
 function sem_contorno(){map.setPaintProperty('cidade-l','line-opacity',0);map.getSource('cidade').setData(VZ)}
-async function lugar(l,voa){S.lugar=l;S.ponto=null;marca.setLngLat([l.lon,l.lat]).addTo(map);sem_contorno();painel();placas();ponto(l.lat.toFixed(3),l.lon.toFixed(3)).then(p=>{if(S.lugar===l){S.ponto=p;painel()}});const b=await contorno(l);if(S.lugar!==l||!voa)return;const lg=innerWidth>900,ab=!document.body.classList.contains('sem');if(b)map.fitBounds([[b[0],b[1]],[b[2],b[3]]],{padding:{top:80,left:40,bottom:lg?110:innerHeight*(ab?.62:0)+40,right:lg&&ab?450:40},maxZoom:11,duration:MOV()?0:1600,easing:t=>1-(1-t)**4});else map.flyTo({center:[l.lon,l.lat],zoom:Math.max(map.getZoom(),6),duration:MOV()?0:1600,easing:t=>1-(1-t)**4})}
+async function lugar(l,voa){S.lugar=l;S.ponto=null;marca.setLngLat([l.lon,l.lat]).addTo(map);sem_contorno();painel();placas();ponto(l.lat.toFixed(3),l.lon.toFixed(3)).then(p=>{if(S.lugar===l){S.ponto=p;painel()}});const b=await contorno(l);if(S.lugar!==l||!voa)return;const lg=innerWidth>900,ab=!document.body.classList.contains('sem');if(b)map.fitBounds([[b[0],b[1]],[b[2],b[3]]],{padding:{top:80,left:40,bottom:lg?110:(ab?innerHeight*.62:88)+40,right:lg&&ab?450:40},maxZoom:11,duration:MOV()?0:1600,easing:t=>1-(1-t)**4});else map.flyTo({center:[l.lon,l.lat],zoom:Math.max(map.getZoom(),6),duration:MOV()?0:1600,easing:t=>1-(1-t)**4})}
 const q=$('#q'),ul=$('#sugestoes');
 const mostra=()=>{ul.innerHTML=S.sug.map((m,i)=>`<li data-i="${i}"${i==S.sel?' class="sel"':''}>${esc(m[0])}<span> · ${m[1]}</span></li>`).join('');ul.hidden=!S.sug.length};
 q.oninput=()=>{const s=sem(q.value.trim());S.sel=0;S.sug=[];if(s){const a=[],b=[];for(const m of S.munis){if(m[5].startsWith(s))a.push(m);else if(b.length<8&&m[5].includes(s))b.push(m);if(a.length==8)break}S.sug=a.concat(b).slice(0,8)}mostra()};
@@ -125,6 +125,13 @@ ul.onmousedown=e=>{const li=e.target.closest('li');if(li){e.preventDefault();esc
 q.onblur=()=>{S.sug=[];mostra()};
 document.body.classList.add('sem');
 $('#recolhe').onclick=()=>document.body.classList.toggle('sem');
+// puxador do painel no celular: o painel segue o dedo e, ao soltar, fica do lado para onde andou; toque só alterna
+const pn=$('#painel'),al=$('#alca');let y0=null,dy=0;
+al.onpointerdown=e=>{y0=e.clientY;dy=0;al.setPointerCapture(e.pointerId);pn.style.transition='none'};
+al.onpointermove=e=>{if(y0==null)return;dy=e.clientY-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;pn.style.translate=`0 ${Math.min(Math.max(b+dy,0),h-pk)}px`};
+const vira=v=>{if(document.body.classList.toggle('sem',v))pn.scrollTo({top:0,behavior:MOV()?'auto':'smooth'})};
+al.onpointerup=al.onpointercancel=()=>{if(y0==null)return;y0=null;pn.style.transition=pn.style.translate='';vira(Math.abs(dy)<6?undefined:dy>0)};
+al.onclick=e=>{if(!e.detail)vira()};
 $('#slider').oninput=e=>{S.i=+e.target.value/K();vai()};
 function toca(on){clearInterval(S.anim);S.anim=on?setInterval(()=>{const s=$('#slider'),k=K(),j=(Math.round(S.i*k)+1)%(+s.max+1);S.i=j/k;s.value=j;vai()},k1()/S.vel):null;const b=$('#play');b.setAttribute('aria-pressed',on);b.textContent=on?'\u{F03E4}':'\u{F040A}'}
 $('#play').onclick=()=>toca(!S.anim);
@@ -143,7 +150,8 @@ let MUN=0;map.on('zoomend',()=>{if(!MUN&&map.getZoom()>=5.5){MUN=1;map.getSource
 map.on('load',async()=>{map.getCanvasContainer().append(cv,rc);zc();V=vento(map,cv,P);tinta();for(const k of S.lig)for(const l of CAPAS[k])map.setLayoutProperty(l,'visibility','visible');V.liga(S.lig.has('vento'));legenda();
 // nada espera radar, satélite ou alertas: a pintura sai assim que chegam tempos, campo e UFs
 passado();alertas();const mu=pega('dados/municipios.json').then(m=>S.munis=(m||[]).map(x=>[...x,sem(x[0])]));Promise.all([pega('dados/ufs.json'),tempos()]).then(([u])=>{map.getSource('ufs').setData(u||VZ);ufs(u);pede()});
-// localização do navegador: voa até o município e contorna; negada, marca o lugar padrão sem voo
+// lugar padrão já com voo, sem esperar o GPS; a localização do navegador, se vier antes de outra escolha, voa até o município dela
+const pad=pega('api/lugar.json').then(async l=>{await mu;if(l&&!S.lugar)lugar(nomeado(l.lat,l.lon,l.nome),true);return S.lugar});
 const gps=await new Promise(r=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>r(p.coords),()=>r(null),{timeout:1e4,maximumAge:36e5}):r(null));await mu;// ponytail: o GPS daqui cai em Espigão Alto do Iguaçu; é Quedas do Iguaçu
-if(gps){let l=nomeado(gps.latitude,gps.longitude);const q=l.nome=='Espigão Alto do Iguaçu'&&S.munis.find(m=>m[0]=='Quedas do Iguaçu');if(q)l={nome:q[0],uf:q[1],lat:q[2],lon:q[3],ibge:q[4]};lugar(l,true)}else{const l=await pega('api/lugar.json');if(l)lugar(nomeado(l.lat,l.lon,l.nome),false)}
+const p0=await pad;if(gps&&S.lugar===p0){let l=nomeado(gps.latitude,gps.longitude);const q=l.nome=='Espigão Alto do Iguaçu'&&S.munis.find(m=>m[0]=='Quedas do Iguaçu');if(q)l={nome:q[0],uf:q[1],lat:q[2],lon:q[3],ibge:q[4]};if(l.nome!=p0?.nome)lugar(l,true)}
 setInterval(async()=>{if(await cores()){tinta();desenha()}},6e4);setInterval(tempos,6e5);setInterval(passado,3e5);setInterval(raios,6e4);setInterval(alertas,6e5)});

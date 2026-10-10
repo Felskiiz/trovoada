@@ -1,6 +1,6 @@
 # trovoada
 
-Radar de tempestades do Brasil, local. Servidor em Rust (axum) e mapa em MapLibre, sem tiles de terceiros: o mapa-base é GeoJSON em `web/dados`. As cores vêm da paleta viva da petricor, em `~/.config/quickshell/petricor/cores.json`.
+Radar de tempestades do Brasil, local. Servidor em Rust (axum) e mapa em MapLibre, sem tiles de terceiros: o mapa-base é GeoJSON em `web/dados`. As cores são uma paleta fixa em preto e branco, em `cores_v` no `src/main.rs`.
 
 ## Rodar
 
@@ -22,7 +22,7 @@ Ao subir, o servidor baixa o GFS e o ECMWF em GRIB, o que leva cerca de 35 s. A 
 
 O GitHub Actions (`.github/workflows/site.yml`) roda a cada 15 min `trovoada --exportar saida`: uma rodada de cada fonte, gravada como arquivos com os nomes das rotas da API (`saida/api/...`), e publica `web/` + `api/` no GitHub Pages. A grade do Open-Meteo passa de uma rodada para a outra pelo cache do Actions. O repositório precisa ser público: minutos ilimitados e Pages no plano grátis.
 
-O navegador busca direto o radar (RainViewer), os tiles do satélite (GIBS) e o meteograma do ponto (Open-Meteo); os três liberam CORS. No site público os raios e os alertas têm o atraso da última rodada, e a paleta é a fixa.
+O navegador busca direto o radar (RainViewer), os tiles do satélite (GIBS) e o meteograma do ponto (Open-Meteo); os três liberam CORS. No site público os raios e os alertas têm o atraso da última rodada.
 
 ## Consenso
 

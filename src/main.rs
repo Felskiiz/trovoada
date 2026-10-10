@@ -30,7 +30,6 @@ const ENDERECO: &str = "0.0.0.0:8077";
 
 struct App {
     http: reqwest::Client,
-    casa: PathBuf,
     cache: PathBuf,
     previsoes: RwLock<BTreeMap<&'static str, Previsao>>,
     status: RwLock<BTreeMap<&'static str, Status>>,
@@ -61,7 +60,6 @@ async fn main() {
             .timeout(Duration::from_secs(90))
             .build()
             .unwrap(),
-        casa,
         cache,
         previsoes: Default::default(),
         status: Default::default(),
@@ -180,7 +178,7 @@ async fn exportar(app: &App, dir: PathBuf) {
         }
     }
     grava("raios.json".into(), js(&json!(app.raios.lista())));
-    grava("cores.json".into(), js(&cores_v(app)));
+    grava("cores.json".into(), js(&cores_v()));
     grava("lugar.json".into(), js(&lugar_v()));
 }
 
@@ -256,19 +254,13 @@ async fn raios_(State(a): St) -> Json<Vec<[f32; 3]>> {
     Json(a.raios.lista())
 }
 
-fn ler_json(p: PathBuf) -> Option<Value> {
-    serde_json::from_slice(&std::fs::read(p).ok()?).ok()
+/// Paleta preto e branco do projeto.
+fn cores_v() -> Value {
+    json!({"breu":"#0A0A0A","terra":"#121212","barro":"#1B1B1B","limo":"#2C2C2C","areia":"#DCDCDC","fonte":"#FFFFFF","acento":"#FFFFFF","acento_forte":"#F5F5F5","musgo":"#B4B4B4","ocre":"#8C8C8C","ferro":"#FFFFFF"})
 }
 
-/// Paleta viva da petricor; sem ela, a paleta fixa.
-fn cores_v(a: &App) -> Value {
-    ler_json(a.casa.join(".config/quickshell/petricor/cores.json")).unwrap_or_else(|| {
-        json!({"breu":"#131110","terra":"#1B1817","barro":"#241F1D","limo":"#302A27","areia":"#EFE9E4","fonte":"#EFE9E4","acento":"#74D0E4","acento_forte":"#74D0E4","musgo":"#97C489","ocre":"#DFA765","ferro":"#E08C7E"})
-    })
-}
-
-async fn cores(State(a): St) -> Json<Value> {
-    Json(cores_v(&a))
+async fn cores() -> Json<Value> {
+    Json(cores_v())
 }
 
 fn lugar_v() -> Value {
