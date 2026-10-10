@@ -28,3 +28,4 @@
 
 A Michelangelus (`--texto`) tem EULA da Microsoft sem direito de distribuição: os `.ttf` não entram no repositório nem no Pages. O CSS só a chama pelo nome; quem a tem instalada (em `~/.local/share/fonts/michelangelus/`) vê ela, o resto cai na LXGW WenKai Screen ou em `system-ui`.
 - Pinça fora do mapa ampliava a página inteira no app. O viewport leva `maximum-scale=1,user-scalable=no` (o WKWebView respeita), o `html` leva `touch-action:pan-x pan-y` e `gesturestart` é cancelado; o zoom do mapa é do MapLibre, por JS, e não depende disso.
+- Trocar `setData` da fonte `cidade` não tem transição: esvaziar a máscara (`cidade-m`) na troca de cidade acende o mapa inteiro até o contorno novo chegar do IBGE. A máscara antiga fica até a nova chegar; só a opacidade (com transição) liga e desliga.
