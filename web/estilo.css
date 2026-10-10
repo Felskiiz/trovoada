@@ -8,7 +8,8 @@ body{overflow:hidden;--pw:408px}
 body.sem{--pw:0px}
 #lado{position:fixed;inset:0;overflow:hidden}
 #mapa{position:absolute;inset:0}
-#vento,#placas{position:absolute;left:0;top:0;pointer-events:none}
+#vento,#placas,#mascara{position:absolute;left:0;top:0;pointer-events:none}
+#mascara{opacity:0;transition:opacity .6s}
 .g{font-family:var(--mono)}
 #chips{position:absolute;top:calc(14px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));max-width:calc(100% - var(--pw) - 74px);display:flex;flex-wrap:wrap;gap:2px;z-index:2;background:var(--terra);border-radius:20px;padding:4px;box-shadow:var(--sombra);animation:surge .6s var(--petricor) both}
 #chips button{display:flex;align-items:center;gap:6px;font:12px var(--texto);border:0;border-radius:999px;padding:6px 13px 6px 10px;background:none;color:var(--areia);cursor:pointer;transition:background .35s var(--gota),color .35s var(--gota),scale .3s var(--respiro)}
