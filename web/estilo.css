@@ -41,7 +41,7 @@ body.sem{--pw:0px}
 #slider::-webkit-slider-runnable-track{height:4px;background:var(--tr)}
 #slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--acento);box-shadow:0 0 0 5px var(--anel)}
 #slider:active::-moz-range-thumb{transform:scale(1.25)}
-#legenda{position:absolute;top:56px;right:calc(var(--pw) + 14px);transition:right .5s var(--petricor);width:250px;background:var(--terra);border-radius:16px;padding:10px 14px 8px;font:11px var(--mono);z-index:2;box-shadow:var(--sombra);animation:surge .6s .12s var(--petricor) both}
+#legenda{position:absolute;top:max(56px,calc(var(--chips,0px) + 22px));right:calc(var(--pw) + 14px);transition:right .5s var(--petricor);width:250px;background:var(--terra);border-radius:16px;padding:10px 14px 8px;font:11px var(--mono);z-index:2;box-shadow:var(--sombra);animation:surge .6s .12s var(--petricor) both}
 #legenda .tit{color:var(--areia)}
 #legenda .rot,#legenda .fr{color:var(--areia);opacity:.65}
 #legenda .item+.item{margin-top:10px;padding-top:9px;border-top:1px solid var(--limo)}

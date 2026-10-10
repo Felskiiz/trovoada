@@ -129,6 +129,8 @@ $('#play').onclick=()=>toca(!S.anim);
 const VEL=[.5,1,1.5,2];$('#vel').onclick=e=>{S.vel=VEL[(VEL.indexOf(S.vel)+1)%VEL.length];e.target.textContent=String(S.vel).replace('.',',')+'×';if(S.anim)toca(true)};
 $('#chips').innerHTML=Object.entries(CHIPS).map(([k,[g,n]])=>`<button data-k="${k}" aria-pressed="${S.lig.has(k)}"><i class="g">${g}</i>${n}</button>`).join('');
 $('#chips').onclick=e=>{const k=e.target.closest('button')?.dataset.k;if(k&&V)liga(k,!S.lig.has(k))};
+// a legenda desce quando os chips quebram em duas linhas
+new ResizeObserver(([e])=>document.documentElement.style.setProperty('--chips',e.target.offsetHeight+'px')).observe(document.getElementById('chips'));
 // pill do alerta ao lado do mouse
 function aviso(e){const el=$('#aviso'),fs=e&&S.lig.has('alertas')?map.queryRenderedFeatures(e.point,{layers:['alertas-f']}):[];if(!fs.length){el.hidden=true;return}const vs=new Map(fs.map(f=>[f.properties.evento,f.properties]));el.innerHTML=[...vs.values()].map(p=>`<div class="n${p.nivel}"><span class="g">\u{F0026}</span>${esc(p.evento)}<small>${esc(p.severidade)}</small></div>`).join('');el.style.translate=`${e.point.x+14}px ${e.point.y-14}px`;el.hidden=false}
 map.on('mousemove',e=>{mira=e.lngLat;cursor();aviso(e)});map.on('mouseout',()=>{mira=null;cursor();aviso()});map.on('move',()=>{cursor();placas()});map.on('resize',placas);
