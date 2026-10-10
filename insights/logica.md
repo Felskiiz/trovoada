@@ -19,12 +19,14 @@ A arquitetura (fontes, consenso, API) está no `README.md`. Aqui fica o comporta
 
 ## Modos chuva e precipitação
 - Ao abrir, só `chuva` vem ligado. `chuva` é o modo simples: `ufChuva()` pinta cada UF pela chance média (`chance()` = fontes que votam chuva ÷ fontes) e `placas()` desenha pills `UF temp chance` no canvas `#placas`. O antigo modo de mm/h agora é `precip` (fonte e camada `precip`).
-- Cidade por cidade só quando a UF do centro cobre ≥55% da tela (`cheio` em `placas()`): até 600 municípios por distância ao centro, com colisão gulosa. Painel, chips, legenda, linha do tempo e o marcador entram como obstáculos.
+- Cidade por cidade só quando a UF do centro cobre ≥55% da tela (`cheio` em `placas()`): até 600 municípios na ordem de `municipios.json`, que vem ordenado por população (estimativa IBGE, SIDRA 6579), com colisão gulosa e folga de 18 px no zoom 9 a 50 px no zoom 7: no zoom de estado só as maiores aparecem. Painel, chips, legenda, linha do tempo e o marcador entram como obstáculos.
 - `#placas` mede `map.getContainer()`: o `getCanvasContainer()` tem 0 px.
 ## Painel da cidade
 - O painel é React (`painel/`, build do Vite em `web/painel/`); o mapa segue JS sem bundle. `painel()` no `app.js` monta o dado, grava em `window.trovoada.lugar` e dispara `trovoada:lugar`; `painel/lugar.tsx` lê com `useSyncExternalStore`.
 - Dado: temperatura e vento do quadro de agora, mais as 24 h do dia local vindas de `ponto()` (Open-Meteo direto, `past_days=1` para o dia começar à meia-noite local): mm é a mediana dos modelos, chance é a fração de modelos com ≥0,1 mm, temperatura é a mediana.
 - Busca: `lugar(l,true)` baixa a malha do IBGE (`l.ibge`), pinta `cidade-l` (contorno) e `cidade-m` (máscara do mundo com o município de buraco) e faz `fitBounds` descontando o painel. Clique no mapa só marca o ponto, sem zoom nem contorno.
+- Ao abrir: `geolocation` do navegador → `nomeado()` (município mais próximo, com `ibge`) → `lugar(l,true)`, com voo e contorno. Negada ou sem resposta, marca `api/lugar.json` sem voo.
+- Carga: a pintura espera só `tempos()` + `dados/ufs.json` (que o app baixa e passa por `setData`, sem a fonte do MapLibre baixar de novo). Radar, satélite, alertas e municípios carregam por fora; antes, um `Promise.all` com eles segurava as cores por segundos.
 - Limites de todos os municípios: `web/dados/municipios-geo.json` (IBGE `malhas/paises/BR?intrarregiao=municipio&qualidade=minima`, coordenadas a 3 casas, sem propriedades). A fonte `munis` nasce vazia e só recebe o arquivo no primeiro `zoomend` com zoom ≥ 5,5; a camada `munis-l` tem `minzoom:6` e aparece de 6 a 7.
 ## Servidor
 - Escuta em `0.0.0.0:8077` para abrir no celular pela rede local ou Tailscale; o firewalld já libera TCP 1025–65535.
