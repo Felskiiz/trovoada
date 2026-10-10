@@ -1,5 +1,5 @@
 @font-face{font-family:"LXGWWenKaiMono Nerd Font";src:local("LXGWWenKaiMono Nerd Font"),local("LXGWWenKaiMonoNF-Regular"),url(fontes/mono.woff2) format("woff2");font-display:swap}
-:root{--gota:cubic-bezier(.2,1,.2,1);--petricor:cubic-bezier(.05,.9,.1,1);--mare:cubic-bezier(.65,0,.35,1);--respiro:cubic-bezier(.34,1.4,.64,1);--texto:"Michelangelus","LXGW WenKai Screen",system-ui,sans-serif;--mono:"LXGWWenKaiMono Nerd Font",ui-monospace,monospace;--destaque:"Ma Shan Zheng",var(--texto);--sombra:0 6px 22px rgb(0 0 0/.38);--anel:color-mix(in srgb,var(--acento) 30%,transparent)}
+:root{--gota:cubic-bezier(.2,1,.2,1);--petricor:cubic-bezier(.05,.9,.1,1);--mare:cubic-bezier(.65,0,.35,1);--respiro:cubic-bezier(.34,1.4,.64,1);--gaveta:cubic-bezier(.32,.72,0,1);--texto:"Michelangelus","LXGW WenKai Screen",system-ui,sans-serif;--mono:"LXGWWenKaiMono Nerd Font",ui-monospace,monospace;--destaque:"Ma Shan Zheng",var(--texto);--sombra:0 6px 22px rgb(0 0 0/.38);--anel:color-mix(in srgb,var(--acento) 30%,transparent)}
 @keyframes surge{from{opacity:0;translate:0 10px}}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
@@ -109,14 +109,20 @@ body.sem{--ph:var(--peek)}
 #legenda{display:none}
 #dica{display:flex;position:absolute;top:calc(62px + env(safe-area-inset-top));right:10px;z-index:2;gap:6px;align-items:center;border:0;background:var(--terra);color:var(--areia);border-radius:999px;padding:6px 12px 6px 10px;font:11px var(--mono);box-shadow:var(--sombra);animation:surge .6s .12s var(--petricor) both}
 #leg-painel{display:block;flex:none;border:1px solid var(--limo);border-radius:16px;padding:10px 14px 8px;font:11px var(--mono)}
-#tempo{left:8px;right:8px;bottom:calc(var(--ph) + 8px);transition:bottom .5s var(--petricor);padding-right:14px}
+#tempo{left:8px;right:8px;bottom:calc(var(--ph) + 8px);transition:bottom .6s var(--gaveta);padding-right:14px}
 #slider::-moz-range-thumb{width:20px;height:20px}
 #slider::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px}
 #slider{height:28px}
 #painel{top:auto;left:0;right:0;bottom:0;width:auto;height:62dvh;border-radius:22px 22px 0 0;padding:6px 16px calc(22px + env(safe-area-inset-bottom));gap:10px}
 body.sem #painel{translate:0 calc(100% - var(--peek));overflow:hidden}
+#painel{transition:translate .6s var(--gaveta)}
+#lugar,#leg-painel,#rodape{transition:opacity .45s var(--gota) .1s,translate .6s var(--gaveta) .06s}
+#leg-painel{transition-delay:.16s,.12s}
+#rodape{transition-delay:.22s,.18s}
+body.sem :is(#lugar,#leg-painel,#rodape){opacity:0;translate:0 24px;transition:opacity .15s,translate 0s .3s}
+#painel.arrasta :is(#lugar,#leg-painel,#rodape){opacity:var(--f);translate:0 calc((1 - var(--f))*24px);transition:none}
 #agora{gap:0 16px}
 .temp{font-size:64px}
 .nome{font-size:18px}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:0s!important}}

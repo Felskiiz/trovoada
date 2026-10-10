@@ -128,12 +128,12 @@ ul.onmousedown=e=>{const li=e.target.closest('li');if(li){e.preventDefault();esc
 q.onblur=()=>{S.sug=[];mostra()};
 document.body.classList.add('sem');
 $('#recolhe').onclick=()=>document.body.classList.toggle('sem');
-// puxador do painel no celular: o painel segue o dedo e, ao soltar, fica do lado para onde andou; toque só alterna
+// puxador do painel no celular: o painel segue o dedo (e o conteúdo abaixo da busca aparece junto, por --f) e, ao soltar, fica do lado para onde andou; toque só alterna
 const pn=$('#painel'),al=$('#alca');let y0=null,dy=0;
 al.onpointerdown=e=>{y0=e.clientY;dy=0;al.setPointerCapture(e.pointerId);pn.style.transition='none'};
-al.onpointermove=e=>{if(y0==null)return;dy=e.clientY-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;pn.style.translate=`0 ${Math.min(Math.max(b+dy,0),h-pk)}px`};
+al.onpointermove=e=>{if(y0==null)return;dy=e.clientY-y0;const h=pn.offsetHeight,pk=parseFloat(getComputedStyle(document.body).getPropertyValue('--peek'))||0,b=document.body.classList.contains('sem')?h-pk:0;const t=Math.min(Math.max(b+dy,0),h-pk);pn.style.translate=`0 ${t}px`;pn.classList.add('arrasta');pn.style.setProperty('--f',1-t/(h-pk))};
 const vira=v=>{if(document.body.classList.toggle('sem',v))pn.scrollTo({top:0,behavior:MOV()?'auto':'smooth'})};
-al.onpointerup=al.onpointercancel=()=>{if(y0==null)return;y0=null;pn.style.transition=pn.style.translate='';vira(Math.abs(dy)<6?undefined:dy>0)};
+al.onpointerup=al.onpointercancel=()=>{if(y0==null)return;y0=null;pn.style.transition=pn.style.translate='';pn.classList.remove('arrasta');vira(Math.abs(dy)<6?undefined:dy>0)};
 al.onclick=e=>{if(!e.detail)vira()};
 $('#dica').onclick=()=>{vira(false);$('#leg-painel').scrollIntoView({block:'nearest',behavior:MOV()?'auto':'smooth'})};
 // pinça fora do mapa não amplia a página (o WKWebView respeita o viewport, o Safari só o gesturestart)
