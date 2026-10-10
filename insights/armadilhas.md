@@ -27,3 +27,4 @@
 - A paleta de `cores_v` em `src/main.rs` precisa ter toda chave que o `web/` lê (`C.*`, `P.*`, `var(--*)`); faltou `fonte` e o mapa ficou preto.
 
 A Michelangelus (`--texto`) tem EULA da Microsoft sem direito de distribuição: os `.ttf` não entram no repositório nem no Pages. O CSS só a chama pelo nome; quem a tem instalada (em `~/.local/share/fonts/michelangelus/`) vê ela, o resto cai na LXGW WenKai Screen ou em `system-ui`.
+- Pinça fora do mapa ampliava a página inteira no app. O viewport leva `maximum-scale=1,user-scalable=no` (o WKWebView respeita), o `html` leva `touch-action:pan-x pan-y` e `gesturestart` é cancelado; o zoom do mapa é do MapLibre, por JS, e não depende disso.

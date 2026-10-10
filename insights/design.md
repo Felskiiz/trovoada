@@ -27,7 +27,7 @@
 - Modo chuva: UF em `limo→acento` pela chance; pills `--terra` com UF em areia, temperatura na cor da faixa e chance em acento. Busca escurece o mundo (`cidade-m`, breu) e contorna o município em acento.
 ## Disposição
 - Desktop: chips no topo à esquerda, botão `#recolhe` no topo à direita, painel da cidade à direita (`--pw`), legendas empilhadas sob o botão, linha do tempo no rodapé.
-- Celular (≤900px): painel vira gaveta inferior (`--ph`, 62dvh), chips numa fileira com rolagem horizontal, legenda compacta, trilho e polegar maiores para o dedo.
+- Celular (≤900px): painel vira gaveta inferior (`--ph`, 62dvh), chips numa fileira com rolagem horizontal, legenda dentro do painel embaixo dos gráficos (`#leg-painel`) e, no mapa, só a pill `#dica` que abre o painel, trilho e polegar maiores para o dedo.
 - O painel da cidade sempre abre recolhido (`body.sem`); recolhido, some inteiro, sem deixar resto.
 - Uma legenda por camada ligada, empilhadas em `#legenda` (`.item+.item`), na ordem em que foram ligadas.
 - Pills que seguem o mouse (`#mira` com valores, `#aviso` com o alerta) ficam a 14px do cursor e têm `pointer-events:none`.

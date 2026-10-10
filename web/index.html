@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <title>trovoada</title>
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="icones/favicon.svg" type="image/svg+xml">
@@ -20,7 +20,7 @@
 <div id="mapa"></div>
 <nav id="chips"></nav>
 <button id="recolhe" aria-label="painel">&#xF035C;</button>
-<div id="legenda" hidden></div>
+<div id="legenda" class="leg" hidden></div><button id="dica" hidden><span class="g">&#xF02FD;</span>legenda no painel</button>
 <div id="mira" hidden></div><div id="aviso" hidden></div>
 <div id="tempo" hidden><button id="play" aria-pressed="false">&#xF040A;</button><button id="vel">1×</button><div id="trilho"><output id="instante"></output><input id="slider" type="range" min="0" max="0" value="0"><div id="dias"></div></div></div>
 </div>
@@ -28,6 +28,7 @@
 <button id="alca" aria-label="painel"></button>
 <div id="busca"><span class="g">&#xF0349;</span><input id="q" type="search" autocomplete="off" spellcheck="false" aria-label="lugar"><ul id="sugestoes" hidden></ul></div>
 <div id="lugar"></div>
+<div id="leg-painel" class="leg" hidden></div>
 <footer id="rodape" hidden></footer>
 </aside>
 </body>
